@@ -8,7 +8,7 @@ buildscript {
         robolectric_version = "4.3.1"
         view_model_latestVersion = "2.3.1"
         lifecycle_version = "2.4.0-beta01"
-        koin_version= "3.1.2"
+        koin_version = "3.1.2"
         mockito_kotlin_version = "2.0.0"
     }
     repositories {
@@ -22,7 +22,18 @@ buildscript {
         // in the individual module build.gradle files
     }
 }
-
+plugins {
+    id 'com.google.dagger.hilt.android' version '2.44' apply false
+}
+configurations.all {
+    resolutionStrategy {
+        force(
+                "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}",
+                "org.jetbrains.kotlin:kotlin-stdlib-common:${kotlin_version}",
+                "org.jetbrains.kotlin:kotlin-reflect:${kotlin_version}",
+        )
+    }
+}
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
