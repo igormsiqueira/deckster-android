@@ -1,13 +1,29 @@
 package com.igorapp.deckster
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.toSize
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.theme.DecksterTheme
+import com.igorapp.deckster.ui.theme.topGradientColor
+import com.igorapp.deckster.ui.theme.bottomGradientColor
 
 @Preview
 @Composable
@@ -19,24 +35,41 @@ fun HomeListScreenPreviewLight(@PreviewParameter(HomeListScreenPreviewProvider::
 
 @Composable
 internal fun HomeListScreen(decksterUiState: DecksterUiState) {
+    var size by remember { mutableStateOf(Size.Zero) }
+
     DecksterTheme {
-        LazyColumn(
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(topGradientColor, bottomGradientColor),
+                    )
+                )
+                .onGloballyPositioned { coord ->
+                    size = coord.size.toSize()
+                }
         ) {
-            when (decksterUiState) {
-                is DecksterUiState.Success ->
-                    deckGameListScreen(this, decksterUiState.games)
+            LazyColumn(
+            ) {
+                when (decksterUiState) {
+                    is DecksterUiState.Success -> {
+                        item { Text(text = "Header") }
+                        deckGameListScreen(this, decksterUiState.games)
+                    }
 
-                is DecksterUiState.Loading -> item {
-                    DeckGameListLoadingIndicator()
+                    is DecksterUiState.Loading -> item {
+                        DeckGameListLoadingIndicator()
+                    }
+
+                    is DecksterUiState.Error -> item {
+                        DeckGameListErrorScreen()
+                    }
+
                 }
-
-                is DecksterUiState.Error -> item {
-                    DeckGameListErrorScreen()
-                }
-
             }
         }
+
     }
 }
 
