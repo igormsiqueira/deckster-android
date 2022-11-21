@@ -6,9 +6,9 @@ Deckster-android app
 
 ## Todo
 
-- Network setup
+- ~~Network setup~~
 - Room setup
-- Main list
+- ~~Main list~~
 - Search
 - Bookmarks/Backlog
 - Testing
