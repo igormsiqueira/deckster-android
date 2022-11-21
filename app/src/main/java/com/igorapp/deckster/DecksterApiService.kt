@@ -18,6 +18,10 @@ interface DecksterApi {
         @Query("page") page: Int, @Query("size") size: Int
     ): List<Game>
 
+    @GET(API.getChoiceGames)
+    suspend fun loadChoiceGames(
+    ): List<Game>
+
     @GET(API.searchGames)
     suspend fun searchByName(@Path("q") name: String): List<Game>
 
@@ -39,11 +43,16 @@ interface DecksterApi {
 interface DecksterApiService {
      fun loadGames(page: Int, size: Int): Flow<List<Game>>
      fun searchByGame(name: String): Flow<List<Game>>
+    fun loadChoiceGames(): Flow<List<Game>>
 }
 
 class Deckster(private val api: DecksterApi) : DecksterApiService {
     override  fun loadGames(page: Int, size: Int) = flow {
         emit(api.loadGamePage(page, size))
+    }
+
+    override  fun loadChoiceGames() = flow {
+        emit(api.loadChoiceGames())
     }
 
     override  fun searchByGame(name: String) = flow {
@@ -55,6 +64,7 @@ class Deckster(private val api: DecksterApi) : DecksterApiService {
 object API {
     //    https://api-deckster.herokuapp.com/games?page=0&size=30
     const val getAllGames = "games"
+    const val getChoiceGames = "choice"
     const val searchGames = "/search"
     const val baseUrl = "https://api-deckster.herokuapp.com/"
 }

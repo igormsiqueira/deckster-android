@@ -50,12 +50,14 @@ internal fun HomeListScreen(decksterUiState: DecksterUiState) {
                     size = coord.size.toSize()
                 }
         ) {
-            LazyColumn(
-            ) {
+            LazyColumn {
+                item {
+                    Toolbar()
+                }
                 when (decksterUiState) {
                     is DecksterUiState.Success -> {
-                        item { Text(text = "Header") }
-                        deckGameListScreen(this, decksterUiState.games)
+                        deckGameListHeaderScreen(decksterUiState.choiceGames)
+                        deckGameListScreen(decksterUiState.games)
                     }
 
                     is DecksterUiState.Loading -> item {
@@ -79,7 +81,7 @@ class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> 
         get() = sequenceOf(
             DecksterUiState.Loading,
             DecksterUiState.Error,
-            DecksterUiState.Success(PreviewFactory.games),
+            DecksterUiState.Success(PreviewFactory.games, PreviewFactory.games),
         )
 }
 
