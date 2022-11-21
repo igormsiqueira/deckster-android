@@ -1,7 +1,6 @@
 package com.igorapp.deckster
 
 
-import android.graphics.fonts.FontStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -20,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -38,7 +35,6 @@ import com.igorapp.deckster.model.Game
 fun DeckGameListLoadingIndicator() {
     Text(text = "Loading")
 }
-
 
 fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
     item {
@@ -87,10 +83,6 @@ fun GameGridItem(game: Game) {
                 text = game.name,
                 fontWeight = FontWeight.Bold,
             )
-            /*  Text(
-                  color = Color.White,
-                  text = game.id
-              )*/
         }
     }
 }

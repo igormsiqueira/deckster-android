@@ -32,6 +32,6 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun HomeListScreen(viewModel: HomeListViewModel = hiltViewModel()) {
         val state: DecksterUiState by viewModel.uiState.collectAsStateWithLifecycle()
-        HomeListScreen(state)
+        HomeListScreen(state, viewModel::onEvent)
     }
 }

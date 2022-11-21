@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,13 +30,17 @@ import com.igorapp.deckster.ui.theme.bottomGradientColor
 @Composable
 fun HomeListScreenPreviewLight(@PreviewParameter(HomeListScreenPreviewProvider::class) uiState: DecksterUiState) {
     DecksterTheme(darkTheme = false) {
-        HomeListScreen(decksterUiState = uiState)
+        HomeListScreen(decksterUiState = uiState){}
     }
 }
 
 @Composable
-internal fun HomeListScreen(decksterUiState: DecksterUiState) {
+internal fun HomeListScreen(
+    decksterUiState: DecksterUiState,
+    onEvent: (onEvent: DecksterUiEvent) -> Unit
+) {
     var size by remember { mutableStateOf(Size.Zero) }
+    val listState = rememberLazyListState()
 
     DecksterTheme {
         Box(
@@ -50,7 +55,7 @@ internal fun HomeListScreen(decksterUiState: DecksterUiState) {
                     size = coord.size.toSize()
                 }
         ) {
-            LazyColumn {
+            LazyColumn(state = listState) {
                 item {
                     Toolbar()
                 }
@@ -67,7 +72,11 @@ internal fun HomeListScreen(decksterUiState: DecksterUiState) {
                     is DecksterUiState.Error -> item {
                         DeckGameListErrorScreen()
                     }
-
+                }
+                item {
+                    listState.onBottomReached {
+                        onEvent(DecksterUiEvent.OnLoadMore)
+                    }
                 }
             }
         }
