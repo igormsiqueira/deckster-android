@@ -12,26 +12,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.igorapp.deckster.ui.theme.DecksterTheme
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
-@AndroidEntryPoint
-class MainActivity : ComponentActivity() {
-    private val viewModel: HomeListViewModel by viewModels()
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            HomeListScreen(viewModel)
-        }
-    }
+@Module
+@InstallIn(SingletonComponent::class)
+object MainModule {
 
-    @OptIn(ExperimentalLifecycleComposeApi::class)
-    @Composable
-    fun HomeListScreen(viewModel: HomeListViewModel = hiltViewModel()) {
-        val state: DecksterUiState by viewModel.uiState.collectAsStateWithLifecycle()
-        HomeListScreen(state)
-    }
+    @Provides
+    @Singleton
+    fun providesApi() = Deckster(DecksterApi.create())
 }

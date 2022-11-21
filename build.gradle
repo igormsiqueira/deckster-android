@@ -7,7 +7,7 @@ buildscript {
         robolectric_shadows_version = "3.4-rc2"
         robolectric_version = "4.3.1"
         view_model_latestVersion = "2.3.1"
-        lifecycle_version = "2.4.0-beta01"
+        lifecycle_version = "2.6.0-alpha01"
         koin_version = "3.1.2"
         mockito_kotlin_version = "2.0.0"
     }

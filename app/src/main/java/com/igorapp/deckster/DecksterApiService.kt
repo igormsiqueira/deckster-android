@@ -37,16 +37,16 @@ interface DecksterApi {
 }
 
 interface DecksterApiService {
-    suspend fun loadGames(page: Int, size: Int): Flow<List<Game>>
-    suspend fun searchByGame(name: String): Flow<List<Game>>
+     fun loadGames(page: Int, size: Int): Flow<List<Game>>
+     fun searchByGame(name: String): Flow<List<Game>>
 }
 
 class Deckster(private val api: DecksterApi) : DecksterApiService {
-    override suspend fun loadGames(page: Int, size: Int) = flow {
+    override  fun loadGames(page: Int, size: Int) = flow {
         emit(api.loadGamePage(page, size))
     }
 
-    override suspend fun searchByGame(name: String) = flow {
+    override  fun searchByGame(name: String) = flow {
         emit(api.searchByName(name))
     }
 
