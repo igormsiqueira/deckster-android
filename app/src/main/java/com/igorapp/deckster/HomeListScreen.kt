@@ -5,15 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -89,7 +86,7 @@ class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> 
     override val values: Sequence<DecksterUiState>
         get() = sequenceOf(
             DecksterUiState.Loading,
-            DecksterUiState.Error,
+            DecksterUiState.Error(Exception()),
             DecksterUiState.Success(PreviewFactory.games, PreviewFactory.games),
         )
 }

@@ -3,39 +3,54 @@ package com.igorapp.deckster
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.igorapp.deckster.model.Game
+import com.igorapp.deckster.model.GameDao
+import com.igorapp.deckster.model.GameRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeListViewModel @Inject constructor(private val service: Deckster) : ViewModel() {
+class HomeListViewModel @Inject constructor(
+    private val service: Deckster,
+    private val repository: GameRepository,
+) : ViewModel() {
+    init {
+        loadFirstPage()
+    }
 
-    val uiState: StateFlow<DecksterUiState> = decksterUiState().stateIn(
+    val uiState: StateFlow<DecksterUiState> = decksterUiState(
+        gameService = service,
+        repository = repository
+    ).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = DecksterUiState.Loading
     )
 
-    private fun decksterUiState(): Flow<DecksterUiState> {
-        val gameStream: Flow<List<Game>> = service.loadGames(INITIAL_PAGE, SIZE)
-        val choiceStream: Flow<List<Game>> = service.loadChoiceGames()
+    private fun decksterUiState(
+        gameService: Deckster,
+        repository: GameRepository
+    ): Flow<DecksterUiState> {
+        val choiceStream: Flow<List<Game>> = gameService.loadChoiceGames()
+        val localGamesStream: Flow<List<Game>> = repository.getGames()
 
-        return combine(gameStream, choiceStream, ::Pair).asResult()
+        return combine(localGamesStream, choiceStream, ::Pair).asResult()
             .map { result ->
                 when (result) {
-                    is Result.Success -> {
-                        val (games, choiceGames) = result.data
-                        DecksterUiState.Success(
-                            games,
-                            choiceGames
-                        )
-                    }
-                    is Result.Error -> DecksterUiState.Error
+                    is Result.Success -> DecksterUiState.Success(
+                        result.data.first,
+                        result.data.second
+                    )
+
+                    is Result.Error -> DecksterUiState.Error(result.exception)
                     is Result.Loading -> DecksterUiState.Loading
                 }
             }
@@ -44,14 +59,31 @@ class HomeListViewModel @Inject constructor(private val service: Deckster) : Vie
     fun onEvent(decksterUiEvent: DecksterUiEvent) {
         return when (decksterUiEvent) {
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
+            is DecksterUiEvent.OnSearch -> Unit //todo
         }
     }
 
-    private fun onLoadMore() {}
+    private fun onLoadMore() {
+        viewModelScope.launch {
+            service.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+                repository.addGames(games)
+                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
+            }
+        }
+    }
+
+    fun loadFirstPage() {
+        // TODO: move to splashscreen
+        viewModelScope.launch {
+            service.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+                repository.addGames(games)
+            }
+        }
+    }
 
     companion object {
-        var INITIAL_PAGE = 0
-        const val SIZE = 10
+        var INITIAL_PAGE = 1
+        const val SIZE = 20
     }
 
 }

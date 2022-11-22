@@ -3,7 +3,7 @@ package com.igorapp.deckster
 import com.igorapp.deckster.model.Game
 
 sealed interface DecksterUiState {
-    object Error : DecksterUiState
+    class Error(throwable: Throwable?) : DecksterUiState
     object Loading : DecksterUiState
     data class Success(val games: List<Game>, val choiceGames: List<Game>) : DecksterUiState
 }

@@ -62,7 +62,6 @@ class Deckster(private val api: DecksterApi) : DecksterApiService {
 }
 
 object API {
-    //    https://api-deckster.herokuapp.com/games?page=0&size=30
     const val getAllGames = "games"
     const val getChoiceGames = "choice"
     const val searchGames = "/search"
