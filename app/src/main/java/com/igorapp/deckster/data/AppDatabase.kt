@@ -1,11 +1,10 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.igorapp.deckster.model.Game
-import com.igorapp.deckster.model.GameDao
 
 @Database(entities = [Game::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {

@@ -1,4 +1,4 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.ui
 
 
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.igorapp.deckster.R
 import com.igorapp.deckster.model.Game
+import com.igorapp.deckster.ui.utils.ImageUrlBuilder
 
 @Composable
 fun DeckGameListLoadingIndicator() {

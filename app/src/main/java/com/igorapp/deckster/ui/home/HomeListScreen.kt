@@ -1,4 +1,4 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,10 +18,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.toSize
+import com.igorapp.deckster.feature.home.DecksterUiEvent
+import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
+import com.igorapp.deckster.ui.DeckGameListErrorScreen
+import com.igorapp.deckster.ui.DeckGameListLoadingIndicator
+import com.igorapp.deckster.ui.Toolbar
+import com.igorapp.deckster.ui.deckGameListHeaderScreen
+import com.igorapp.deckster.ui.deckGameListScreen
 import com.igorapp.deckster.ui.theme.DecksterTheme
 import com.igorapp.deckster.ui.theme.topGradientColor
 import com.igorapp.deckster.ui.theme.bottomGradientColor
+import com.igorapp.deckster.ui.utils.onBottomReached
 
 @Preview
 @Composable

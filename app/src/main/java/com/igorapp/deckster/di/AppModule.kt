@@ -1,5 +1,6 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.di
 
+import com.igorapp.deckster.network.DecksterApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -9,10 +10,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class AppModule {
-
     @Provides
     @Singleton
-    fun provideApiService():DecksterApi = DecksterApi.create()
+    fun provideApiService(): DecksterApi = DecksterApi.create()
 
 
 }

@@ -1,10 +1,12 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.feature.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.igorapp.deckster.network.Deckster
+import com.igorapp.deckster.feature.home.DecksterUiEvent
+import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
-import com.igorapp.deckster.model.GameDao
-import com.igorapp.deckster.model.GameRepository
+import com.igorapp.deckster.data.GameRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -16,12 +18,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.igorapp.deckster.network.asResult
+import com.igorapp.deckster.network.Result
+import com.igorapp.deckster.network.Result.*
 
 @HiltViewModel
 class HomeListViewModel @Inject constructor(
     private val service: Deckster,
     private val repository: GameRepository,
 ) : ViewModel() {
+
     init {
         loadFirstPage()
     }
@@ -39,19 +45,16 @@ class HomeListViewModel @Inject constructor(
         gameService: Deckster,
         repository: GameRepository
     ): Flow<DecksterUiState> {
+
         val choiceStream: Flow<List<Game>> = gameService.loadChoiceGames()
         val localGamesStream: Flow<List<Game>> = repository.getGames()
 
         return combine(localGamesStream, choiceStream, ::Pair).asResult()
             .map { result ->
                 when (result) {
-                    is Result.Success -> DecksterUiState.Success(
-                        result.data.first,
-                        result.data.second
-                    )
-
-                    is Result.Error -> DecksterUiState.Error(result.exception)
-                    is Result.Loading -> DecksterUiState.Loading
+                    is Success -> DecksterUiState.Success(result.data.first, result.data.second)
+                    is Error -> DecksterUiState.Error(result.exception)
+                    is Loading -> DecksterUiState.Loading
                 }
             }
     }
@@ -72,7 +75,7 @@ class HomeListViewModel @Inject constructor(
         }
     }
 
-    fun loadFirstPage() {
+    private fun loadFirstPage() {
         // TODO: move to splashscreen
         viewModelScope.launch {
             service.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->

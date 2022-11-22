@@ -1,7 +1,10 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.di
 
 import android.content.Context
-import com.igorapp.deckster.model.GameDao
+import com.igorapp.deckster.data.AppDatabase
+import com.igorapp.deckster.data.GameDao
+import com.igorapp.deckster.network.Deckster
+import com.igorapp.deckster.network.DecksterApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +21,6 @@ object MainModule {
     fun providesApi() = Deckster(DecksterApi.create())
 
 }
-
 
 @Module
 @InstallIn(SingletonComponent::class)

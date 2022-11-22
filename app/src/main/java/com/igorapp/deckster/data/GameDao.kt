@@ -1,16 +1,14 @@
-package com.igorapp.deckster.model
+package com.igorapp.deckster.data
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.igorapp.deckster.model.Game
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
 
 @Dao
 interface GameDao {
-
     @Query("SELECT * FROM game")
      fun getAll(): Flow<List<Game>>
 
@@ -22,11 +20,3 @@ interface GameDao {
 
 }
 
-class GameRepository @Inject constructor(private val gameDao: GameDao) {
-
-    suspend fun addGames(games: List<Game>) {
-        gameDao.insertAll(games)
-    }
-
-     fun getGames() =  gameDao.getAll()
-}

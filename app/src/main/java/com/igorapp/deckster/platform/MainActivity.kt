@@ -1,6 +1,5 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.platform
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.igorapp.deckster.feature.home.DecksterUiState
+import com.igorapp.deckster.feature.home.viewmodel.HomeListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -26,7 +27,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun HomeListScreen(viewModel: HomeListViewModel = hiltViewModel()) {
         val state: DecksterUiState by viewModel.uiState.collectAsStateWithLifecycle()
-        HomeListScreen(state, viewModel::onEvent)
+        com.igorapp.deckster.ui.home.HomeListScreen(state, viewModel::onEvent)
     }
 
 }

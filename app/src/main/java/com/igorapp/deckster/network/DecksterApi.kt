@@ -1,10 +1,8 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.network
 
 import com.igorapp.deckster.model.Game
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
@@ -38,32 +36,12 @@ interface DecksterApi {
             return retrofit.create(DecksterApi::class.java)
         }
     }
-}
 
-interface DecksterApiService {
-     fun loadGames(page: Int, size: Int): Flow<List<Game>>
-     fun searchByGame(name: String): Flow<List<Game>>
-    fun loadChoiceGames(): Flow<List<Game>>
-}
 
-class Deckster(private val api: DecksterApi) : DecksterApiService {
-    override  fun loadGames(page: Int, size: Int) = flow {
-        emit(api.loadGamePage(page, size))
+    object API {
+        const val getAllGames = "games"
+        const val getChoiceGames = "choice"
+        const val searchGames = "/search"
+        const val baseUrl = "https://api-deckster.herokuapp.com/"
     }
-
-    override  fun loadChoiceGames() = flow {
-        emit(api.loadChoiceGames())
-    }
-
-    override  fun searchByGame(name: String) = flow {
-        emit(api.searchByName(name))
-    }
-
-}
-
-object API {
-    const val getAllGames = "games"
-    const val getChoiceGames = "choice"
-    const val searchGames = "/search"
-    const val baseUrl = "https://api-deckster.herokuapp.com/"
 }

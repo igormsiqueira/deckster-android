@@ -1,4 +1,4 @@
-package com.igorapp.deckster
+package com.igorapp.deckster.feature.home
 
 
 sealed interface DecksterUiEvent {
