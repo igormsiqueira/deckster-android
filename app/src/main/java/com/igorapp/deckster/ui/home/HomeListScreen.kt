@@ -5,11 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -21,35 +17,33 @@ import androidx.compose.ui.unit.toSize
 import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
-import com.igorapp.deckster.ui.DeckGameListErrorScreen
-import com.igorapp.deckster.ui.DeckGameListLoadingIndicator
-import com.igorapp.deckster.ui.Toolbar
-import com.igorapp.deckster.ui.deckGameListHeaderScreen
-import com.igorapp.deckster.ui.deckGameListScreen
+import com.igorapp.deckster.ui.*
+import com.igorapp.deckster.ui.home.StatusOptions.*
 import com.igorapp.deckster.ui.theme.DecksterTheme
-import com.igorapp.deckster.ui.theme.topGradientColor
 import com.igorapp.deckster.ui.theme.bottomGradientColor
+import com.igorapp.deckster.ui.theme.topGradientColor
 import com.igorapp.deckster.ui.utils.onBottomReached
 
 @Preview
 @Composable
 fun HomeListScreenPreviewLight(@PreviewParameter(HomeListScreenPreviewProvider::class) uiState: DecksterUiState) {
     DecksterTheme(darkTheme = false) {
-        HomeListScreen(decksterUiState = uiState){}
+        HomeListScreen(decksterUiState = uiState) {}
     }
 }
 
 @Composable
 internal fun HomeListScreen(
     decksterUiState: DecksterUiState,
-    onEvent: (onEvent: DecksterUiEvent) -> Unit
+    onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
     var size by remember { mutableStateOf(Size.Zero) }
     val listState = rememberLazyListState()
 
     DecksterTheme {
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxSize()
                 .background(
                     brush = Brush.linearGradient(
@@ -60,14 +54,19 @@ internal fun HomeListScreen(
                     size = coord.size.toSize()
                 }
         ) {
-            LazyColumn(state = listState) {
+            LazyColumn(
+                state = listState,
+            ) {
                 item {
                     Toolbar()
                 }
                 when (decksterUiState) {
                     is DecksterUiState.Success -> {
                         deckGameListHeaderScreen(decksterUiState.choiceGames)
-                        deckGameListScreen(decksterUiState.games)
+                        deckGameFilter { newFilter ->
+                            onEvent(DecksterUiEvent.OnFilterChange(valueOf(newFilter)))
+                        }
+//                        deckGameListScreen(decksterUiState.games)
                     }
 
                     is DecksterUiState.Loading -> item {
@@ -101,6 +100,6 @@ class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> 
 
 object PreviewFactory {
     val games: List<Game> = mutableListOf(
-        Game("123", "God of War", "3")
+        Game("123", "God of War", "3", "keyboard", "proton7-3-2")
     )
 }

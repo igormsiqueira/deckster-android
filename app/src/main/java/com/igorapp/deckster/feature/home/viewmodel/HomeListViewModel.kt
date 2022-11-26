@@ -63,6 +63,7 @@ class HomeListViewModel @Inject constructor(
         return when (decksterUiEvent) {
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
             is DecksterUiEvent.OnSearch -> Unit //todo
+            is DecksterUiEvent.OnFilterChange -> Unit //todo
         }
     }
 

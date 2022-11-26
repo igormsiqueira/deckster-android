@@ -6,7 +6,9 @@ import androidx.room.PrimaryKey
 @Entity
 data class Game(
     @PrimaryKey val id: String,
-    val name: String,
+    val game: String,
     val status: String,
+    val input: String,
+    val runtime: String,
     val isBookmarked: Boolean = false
 )
