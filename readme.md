@@ -9,7 +9,7 @@ Deckster-android app
 - ~~Network setup~~
 - ~~Room setup~~
 - ~~Main list~~
-- Repackage
+- ~~Repackage~~
 - Search
 - List filter
 - Bookmarks/Backlog
