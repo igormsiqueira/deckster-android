@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.feature.home.viewmodel.HomeListViewModel
+import com.igorapp.deckster.ui.home.HomeListScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -26,8 +27,8 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalLifecycleComposeApi::class)
     @Composable
     fun HomeListScreen(viewModel: HomeListViewModel = hiltViewModel()) {
-        val state: DecksterUiState by viewModel.uiState.collectAsStateWithLifecycle()
-        com.igorapp.deckster.ui.home.HomeListScreen(state, viewModel::onEvent)
+        val state: DecksterUiState by viewModel.uiState.collectAsStateWithLifecycle(DecksterUiState.Loading)
+        HomeListScreen(state, viewModel::onEvent)
     }
 
 }
