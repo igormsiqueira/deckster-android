@@ -53,12 +53,12 @@ fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
 }
 
 
-fun LazyListScope.deckGameFilter(filterChanged: (String) -> Unit) {
+fun LazyListScope.deckGameFilter(currentFilter: StatusOptions, filterChanged: (String) -> Unit) {
     item {
         val options = StatusOptions.values().map {
             it.name
         }
-        var selectedOption by remember { mutableStateOf("Verified") }
+        var selectedOption by remember { mutableStateOf(currentFilter.name) }
         val onSelectionChange = { text: String ->
             selectedOption = text
             filterChanged(selectedOption)
@@ -66,13 +66,11 @@ fun LazyListScope.deckGameFilter(filterChanged: (String) -> Unit) {
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
         ) {
             options.forEach { text ->
-                Row(
-                    modifier = Modifier.padding(all = 8.dp),
-                ) {
+                Row() {
                     Button(
                         shape = RoundedCornerShape(size = 8.dp),
                         modifier = Modifier.alpha(
@@ -140,6 +138,7 @@ fun GameGridItem(item: Game) {
 @Composable
 fun GameListItem(item: Game) {
     Row(
+        modifier = Modifier.padding(start = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
