@@ -1,5 +1,6 @@
 package com.igorapp.deckster.network
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -14,6 +15,7 @@ sealed interface Result<out T> {
 fun <T> Flow<T>.asResult(): Flow<Result<T>> {
     return this
         .map<T, Result<T>> {
+            delay(3000)
             Result.Success(it)
         }
         .onStart { emit(Result.Loading) }

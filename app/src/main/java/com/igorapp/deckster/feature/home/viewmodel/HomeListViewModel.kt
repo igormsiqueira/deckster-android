@@ -2,25 +2,19 @@ package com.igorapp.deckster.feature.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.igorapp.deckster.network.Deckster
+import com.igorapp.deckster.data.GameRepository
 import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
-import com.igorapp.deckster.data.GameRepository
+import com.igorapp.deckster.network.Deckster
+import com.igorapp.deckster.network.Result.*
+import com.igorapp.deckster.network.asResult
+import com.igorapp.deckster.ui.home.StatusOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.igorapp.deckster.network.asResult
-import com.igorapp.deckster.network.Result
-import com.igorapp.deckster.network.Result.*
 
 @HiltViewModel
 class HomeListViewModel @Inject constructor(
@@ -43,7 +37,7 @@ class HomeListViewModel @Inject constructor(
 
     private fun decksterUiState(
         gameService: Deckster,
-        repository: GameRepository
+        repository: GameRepository,
     ): Flow<DecksterUiState> {
 
         val choiceStream: Flow<List<Game>> = gameService.loadChoiceGames()
@@ -52,7 +46,9 @@ class HomeListViewModel @Inject constructor(
         return combine(localGamesStream, choiceStream, ::Pair).asResult()
             .map { result ->
                 when (result) {
-                    is Success -> DecksterUiState.Success(result.data.first, result.data.second)
+                    is Success -> DecksterUiState.Success(result.data.first,
+                        result.data.second,
+                        StatusOptions.Verified)
                     is Error -> DecksterUiState.Error(result.exception)
                     is Loading -> DecksterUiState.Loading
                 }

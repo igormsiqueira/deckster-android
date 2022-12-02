@@ -1,6 +1,7 @@
 package com.igorapp.deckster.ui
 
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,8 +24,12 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import coil.size.Size
 import com.igorapp.deckster.R
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.home.StatusOptions
@@ -34,9 +39,40 @@ import java.util.*
 
 @Composable
 fun DeckGameListLoadingIndicator() {
-    Box(Modifier.fillMaxSize()) {
-        Text(text = "Loading")
+    Column(
+        Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        GifImage()
+        Text(
+            color = Color.White,
+            fontSize = 16.sp,
+            text = "Loading...",
+            style = steamTypographyBold.labelSmall,
+        )
     }
+}
+
+@Composable
+fun GifImage(
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context).components {
+            add(ImageDecoderDecoder.Factory())
+        }
+        .build()
+    Image(
+        painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(context).data(data = R.drawable.pal)
+                .apply(block = {
+                    size(Size.ORIGINAL)
+                }).build(), imageLoader = imageLoader
+        ),
+        contentDescription = null,
+        modifier = modifier.fillMaxWidth(),
+    )
 }
 
 fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
@@ -53,12 +89,12 @@ fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
 }
 
 
-fun LazyListScope.deckGameFilter(currentFilter: StatusOptions, filterChanged: (String) -> Unit) {
+fun LazyListScope.deckGameFilter(currentFilter: String, filterChanged: (String) -> Unit) {
     item {
         val options = StatusOptions.values().map {
             it.name
         }
-        var selectedOption by remember { mutableStateOf(currentFilter.name) }
+        var selectedOption by remember { mutableStateOf(currentFilter) }
         val onSelectionChange = { text: String ->
             selectedOption = text
             filterChanged(selectedOption)
@@ -67,7 +103,9 @@ fun LazyListScope.deckGameFilter(currentFilter: StatusOptions, filterChanged: (S
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
         ) {
             options.forEach { text ->
                 Row() {
