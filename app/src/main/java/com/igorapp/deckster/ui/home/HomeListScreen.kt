@@ -63,6 +63,9 @@ internal fun HomeListScreen(
                 when (decksterUiState) {
                     is DecksterUiState.Success -> {
                         deckGameListHeaderScreen(decksterUiState.choiceGames)
+                        deckGameFilter {
+                            onEvent(DecksterUiEvent.OnFilterChange(it))
+                        }
                         deckGameListScreen(decksterUiState.games)
                     }
 

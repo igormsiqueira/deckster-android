@@ -89,12 +89,12 @@ fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
 }
 
 
-fun LazyListScope.deckGameFilter(currentFilter: String, filterChanged: (String) -> Unit) {
+fun LazyListScope.deckGameFilter(filterChanged: (String) -> Unit) {
     item {
         val options = StatusOptions.values().map {
             it.name
         }
-        var selectedOption by remember { mutableStateOf(currentFilter) }
+        var selectedOption by remember { mutableStateOf("currentFilter") }
         val onSelectionChange = { text: String ->
             selectedOption = text
             filterChanged(selectedOption)
