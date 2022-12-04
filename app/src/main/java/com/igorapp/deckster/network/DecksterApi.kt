@@ -42,6 +42,7 @@ interface DecksterApi {
         const val getAllGames = "games"
         const val getChoiceGames = "choice"
         const val searchGames = "/search"
-        const val baseUrl = "https://api-deckster.herokuapp.com/"
+//        const val baseUrl = "https://api-deckster.herokuapp.com/"
+        const val baseUrl = "http://192.168.1.25:8082/"
     }
 }
