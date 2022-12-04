@@ -39,6 +39,7 @@ internal fun HomeListScreen(
     var size by remember { mutableStateOf(Size.Zero) }
     val listState = rememberLazyListState()
     val gridListState = rememberLazyListState()
+    val filterListState = rememberLazyListState()
     DecksterTheme {
         Box(
             modifier =
@@ -61,8 +62,8 @@ internal fun HomeListScreen(
                 }
                 when (decksterUiState) {
                     is DecksterUiState.Success -> {
-                        deckGameListHeaderScreen(gridListState, decksterUiState.choiceGames)
-                        deckGameFilter(decksterUiState.filter) {
+                        deckGameListHeaderScreen(gridListState, decksterUiState.choiceGames.reversed())
+                        deckGameFilter(filterListState,decksterUiState.filter) {
                             onEvent(DecksterUiEvent.OnFilterChange(it))
                         }
                         deckGameListScreen(decksterUiState.games)

@@ -81,7 +81,7 @@ fun GifImage(
 fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: List<Game>) {
     item {
         LazyRow(
-            Modifier.padding(8.dp),
+            Modifier.padding(top = 16.dp, bottom = 8.dp),
             state = lazyListState,
             flingBehavior = rememberSnapperFlingBehavior(lazyListState),
         ) {
@@ -89,14 +89,19 @@ fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: 
                 count = games.size,
                 key = { games[it].id }
             ) { idx ->
-                GameGridItem(games[idx])
+                GameGridItem(games[idx],idx)
             }
         }
     }
 }
 
 
-fun LazyListScope.deckGameFilter(currentFilter: GameStatus, filterChanged: (String) -> Unit) {
+@OptIn(ExperimentalSnapperApi::class)
+fun LazyListScope.deckGameFilter(
+    lazyListState: LazyListState,
+    currentFilter: GameStatus,
+    filterChanged: (String) -> Unit
+) {
     val options = GameStatus.values().map(GameStatus::name)
     item {
         var filter by remember { mutableStateOf(currentFilter.name) }
@@ -105,14 +110,17 @@ fun LazyListScope.deckGameFilter(currentFilter: GameStatus, filterChanged: (Stri
             filterChanged(filter)
         }
         LazyRow(
-            Modifier
-                .padding(start = 8.dp, top = 16.dp, bottom = 16.dp)
-                .fillMaxWidth()) {
+            state = lazyListState,
+            flingBehavior = rememberSnapperFlingBehavior(lazyListState),
+            modifier = Modifier
+                .padding(top = 16.dp, bottom = 16.dp)
+                .fillMaxWidth()
+        ) {
             items(
                 count = options.size,
                 key = { options[it] }
             ) { idx ->
-                FilterButton(options[idx], filter, onSelectionChange)
+                FilterButton(options[idx], filter, onSelectionChange, idx)
             }
         }
     }
@@ -122,7 +130,8 @@ fun LazyListScope.deckGameFilter(currentFilter: GameStatus, filterChanged: (Stri
 private fun FilterButton(
     text: String,
     selectedOption: String,
-    onSelectionChange: (String) -> Unit
+    onSelectionChange: (String) -> Unit,
+    idx: Int
 ) {
     Button(
         shape = RoundedCornerShape(size = 8.dp),
@@ -134,7 +143,13 @@ private fun FilterButton(
                     0.5f
                 }
             )
-            .padding(start = 8.dp, end = 8.dp),
+            .padding(
+                start = if (idx == 0) {
+                    20.dp
+                } else {
+                    8.dp
+                }, end = 8.dp
+            ),
         onClick = { onSelectionChange(text) }) {
         Text(text = text)
     }
@@ -151,27 +166,31 @@ fun LazyListScope.deckGameListScreen(games: List<Game>) {
 
 
 @Composable
-fun GameGridItem(item: Game) {
+fun GameGridItem(item: Game, idx: Int) {
     Box(
-        modifier = Modifier.padding(6.dp),
+        modifier = Modifier.padding(start = if (idx == 0) {
+            20.dp
+        } else {
+            8.dp
+        }, end = 8.dp),
         contentAlignment = Alignment.BottomStart
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(ImageUrlBuilder.getHeaderUrl(item.id))
+                .data(ImageUrlBuilder.getCapsuleHeaderUrl(item.id))
                 .crossfade(true)
                 .build(),
             placeholder = painterResource(R.drawable.ic_launcher_foreground),
             contentDescription = stringResource(R.string.app_name),
             contentScale = ContentScale.FillBounds,
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .size(340.dp, 180.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .size(342.dp, 196.dp)
         )
         Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.badge_verified),
-                tint = VerifiedGreen,
+                tint = WhiteIcon,
                 modifier = Modifier
                     .padding(4.dp),
                 contentDescription = "Verified Icon"
@@ -189,13 +208,13 @@ fun GameGridItem(item: Game) {
 @Composable
 fun GameListItem(item: Game) {
     Row(
-        modifier = Modifier.padding(start = 16.dp),
+        modifier = Modifier.padding(start = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(ImageUrlBuilder.getHeaderUrl(item.id))
+                .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
                 .crossfade(true)
                 .build(),
             placeholder = painterResource(R.drawable.ic_launcher_foreground),
@@ -276,24 +295,4 @@ fun Toolbar() {
             )
         }
     )
-}
-
-@Composable
-fun Toolbar_() {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(start = 8.dp, bottom = 20.dp, top = 20.dp)
-    ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.badge_verified),
-            tint = WhiteIcon,
-            modifier = Modifier
-                .size(40.dp)
-                .padding(end = 4.dp),
-            contentDescription = "Verified Icon"
-        )
-
-
-    }
 }
