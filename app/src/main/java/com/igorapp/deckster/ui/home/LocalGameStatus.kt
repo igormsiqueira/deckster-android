@@ -1,6 +1,6 @@
 package com.igorapp.deckster.ui.home
 
-enum class StatusOptions(val option: Int) {
+enum class LocalGameStatus(val code: Int) {
     Verified(3),
     Playable(2),
     Bookmark(4)

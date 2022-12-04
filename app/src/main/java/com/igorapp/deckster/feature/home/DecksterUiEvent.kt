@@ -1,7 +1,5 @@
 package com.igorapp.deckster.feature.home
 
-import com.igorapp.deckster.ui.home.StatusOptions
-
 
 sealed interface DecksterUiEvent {
     object OnLoadMore : DecksterUiEvent

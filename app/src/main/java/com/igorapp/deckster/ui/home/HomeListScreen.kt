@@ -18,8 +18,7 @@ import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.*
-import com.igorapp.deckster.ui.home.StatusOptions.Bookmark
-import com.igorapp.deckster.ui.home.StatusOptions.Verified
+import com.igorapp.deckster.ui.home.LocalGameStatus.Bookmark
 import com.igorapp.deckster.ui.theme.DecksterTheme
 import com.igorapp.deckster.ui.theme.bottomGradientColor
 import com.igorapp.deckster.ui.theme.topGradientColor

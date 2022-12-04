@@ -32,7 +32,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.igorapp.deckster.R
 import com.igorapp.deckster.model.Game
-import com.igorapp.deckster.ui.home.StatusOptions
+import com.igorapp.deckster.ui.home.LocalGameStatus
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.ImageUrlBuilder
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
@@ -97,9 +97,9 @@ fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: 
 }
 
 
-fun LazyListScope.deckGameFilter(currentFilter: StatusOptions, filterChanged: (String) -> Unit) {
+fun LazyListScope.deckGameFilter(currentFilter: LocalGameStatus, filterChanged: (String) -> Unit) {
     item {
-        val options = StatusOptions.values().map {
+        val options = LocalGameStatus.values().map {
             it.name
         }
         var selectedOption by remember { mutableStateOf(currentFilter.name) }
