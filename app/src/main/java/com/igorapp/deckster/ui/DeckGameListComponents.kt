@@ -32,7 +32,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.igorapp.deckster.R
 import com.igorapp.deckster.model.Game
-import com.igorapp.deckster.ui.home.LocalGameStatus
+import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.ImageUrlBuilder
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
@@ -79,7 +79,6 @@ fun GifImage(
 
 @OptIn(ExperimentalSnapperApi::class)
 fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: List<Game>) {
-
     item {
         LazyRow(
             Modifier.padding(8.dp),
@@ -97,41 +96,47 @@ fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: 
 }
 
 
-fun LazyListScope.deckGameFilter(currentFilter: LocalGameStatus, filterChanged: (String) -> Unit) {
+fun LazyListScope.deckGameFilter(currentFilter: GameStatus, filterChanged: (String) -> Unit) {
+    val options = GameStatus.values().map(GameStatus::name)
     item {
-        val options = LocalGameStatus.values().map {
-            it.name
-        }
-        var selectedOption by remember { mutableStateOf(currentFilter.name) }
+        var filter by remember { mutableStateOf(currentFilter.name) }
         val onSelectionChange = { text: String ->
-            selectedOption = text
-            filterChanged(selectedOption)
+            filter = text
+            filterChanged(filter)
         }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-        ) {
-            options.forEach { text ->
-                Row() {
-                    Button(
-                        shape = RoundedCornerShape(size = 8.dp),
-                        modifier = Modifier.alpha(
-                            if (text == selectedOption) {
-                                1.0f
-                            } else {
-                                0.5f
-                            }
-                        ),
-                        onClick = { onSelectionChange(text) }) {
-                        Text(text = text)
-                    }
-                }
+        LazyRow(
+            Modifier
+                .padding(start = 8.dp, top = 16.dp, bottom = 16.dp)
+                .fillMaxWidth()) {
+            items(
+                count = options.size,
+                key = { options[it] }
+            ) { idx ->
+                FilterButton(options[idx], filter, onSelectionChange)
             }
         }
+    }
+}
+
+@Composable
+private fun FilterButton(
+    text: String,
+    selectedOption: String,
+    onSelectionChange: (String) -> Unit
+) {
+    Button(
+        shape = RoundedCornerShape(size = 8.dp),
+        modifier = Modifier
+            .alpha(
+                if (text == selectedOption) {
+                    1.0f
+                } else {
+                    0.5f
+                }
+            )
+            .padding(start = 8.dp, end = 8.dp),
+        onClick = { onSelectionChange(text) }) {
+        Text(text = text)
     }
 }
 

@@ -15,7 +15,7 @@ interface GameDao {
     @Query("SELECT * FROM game where isBookmarked = 1")
     fun getBookmarks(): List<Game>
 
-    @Query("SELECT * FROM game where status =:filter")
+    @Query("SELECT * FROM game where status =:filter order by game asc")
     fun getGamesByFilter(filter: Int):  Flow<List<Game>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

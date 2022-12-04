@@ -10,8 +10,8 @@ import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.network.Deckster
 import com.igorapp.deckster.network.Result.*
 import com.igorapp.deckster.network.asResult
-import com.igorapp.deckster.ui.home.LocalGameStatus
-import com.igorapp.deckster.ui.home.LocalGameStatus.*
+import com.igorapp.deckster.ui.home.GameStatus
+import com.igorapp.deckster.ui.home.GameStatus.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -58,7 +58,7 @@ class HomeListViewModel @Inject constructor(
                     is Success -> DecksterUiState.Success(
                         result.data.first,
                         result.data.second,
-                        savedStateHandle.get<LocalGameStatus>(GAME_FILTER) ?: Verified
+                        savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
                     )
 
                     is Error -> DecksterUiState.Error(result.exception)

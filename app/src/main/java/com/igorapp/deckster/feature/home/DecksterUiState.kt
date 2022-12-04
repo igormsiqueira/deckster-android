@@ -1,7 +1,7 @@
 package com.igorapp.deckster.feature.home
 
 import com.igorapp.deckster.model.Game
-import com.igorapp.deckster.ui.home.LocalGameStatus
+import com.igorapp.deckster.ui.home.GameStatus
 
 sealed class DecksterUiState {
     class Error(throwable: Throwable?) : DecksterUiState()
@@ -9,7 +9,7 @@ sealed class DecksterUiState {
     data class Success(
         val games: List<Game>,
         val choiceGames: List<Game>,
-        val filter: LocalGameStatus
+        val filter: GameStatus
     ) : DecksterUiState()
 }
 
