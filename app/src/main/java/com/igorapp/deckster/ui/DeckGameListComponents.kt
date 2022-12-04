@@ -1,9 +1,9 @@
 package com.igorapp.deckster.ui
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,6 +35,8 @@ import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.home.StatusOptions
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.ImageUrlBuilder
+import dev.chrisbanes.snapper.ExperimentalSnapperApi
+import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 import java.util.*
 
 @Composable
@@ -60,8 +62,8 @@ fun GifImage(
 ) {
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context).components {
-            add(ImageDecoderDecoder.Factory())
-        }
+        add(ImageDecoderDecoder.Factory())
+    }
         .build()
     Image(
         painter = rememberAsyncImagePainter(
@@ -75,9 +77,15 @@ fun GifImage(
     )
 }
 
-fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
+@OptIn(ExperimentalSnapperApi::class)
+fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: List<Game>) {
+
     item {
-        LazyRow(Modifier.padding(8.dp)) {
+        LazyRow(
+            Modifier.padding(8.dp),
+            state = lazyListState,
+            flingBehavior = rememberSnapperFlingBehavior(lazyListState),
+        ) {
             items(
                 count = games.size,
                 key = { games[it].id }
@@ -231,7 +239,8 @@ fun Toolbar() {
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
                     color = Color.White,
                     text = "Deck",
@@ -251,13 +260,15 @@ fun Toolbar() {
             Icon(
                 modifier = Modifier.size(30.dp),
                 tint = WhiteIcon,
-                imageVector = Icons.Filled.Search, contentDescription = "")
+                imageVector = Icons.Filled.Search, contentDescription = ""
+            )
         },
         navigationIcon = {
             Icon(
                 modifier = Modifier
                     .size(40.dp),
-                painter = painterResource(id = R.drawable.ic_deckicon), contentDescription = "")
+                painter = painterResource(id = R.drawable.ic_deckicon), contentDescription = ""
+            )
         }
     )
 }
