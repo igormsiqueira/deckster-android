@@ -1,5 +1,6 @@
 package com.igorapp.deckster.feature.home.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.igorapp.deckster.data.GameRepository
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class HomeListViewModel @Inject constructor(
     private val service: Deckster,
     private val repository: GameRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     init {
@@ -28,7 +30,8 @@ class HomeListViewModel @Inject constructor(
 
     val uiState: StateFlow<DecksterUiState> = decksterUiState(
         gameService = service,
-        repository = repository
+        repository = repository,
+        savedStateHandle = savedStateHandle
     ).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -38,17 +41,27 @@ class HomeListViewModel @Inject constructor(
     private fun decksterUiState(
         gameService: Deckster,
         repository: GameRepository,
+        savedStateHandle: SavedStateHandle,
     ): Flow<DecksterUiState> {
+        val localGamesStream =
+            savedStateHandle.getStateFlow(
+                GAME_FILTER,
+                StatusOptions.Verified
+            ).flatMapLatest { query ->
+                repository.getGamesByFilter(query.option)
+            }
 
         val choiceStream: Flow<List<Game>> = gameService.loadChoiceGames()
-        val localGamesStream: Flow<List<Game>> = repository.getGames()
 
         return combine(localGamesStream, choiceStream, ::Pair).asResult()
             .map { result ->
                 when (result) {
-                    is Success -> DecksterUiState.Success(result.data.first,
+                    is Success -> DecksterUiState.Success(
+                        result.data.first,
                         result.data.second,
-                        StatusOptions.Verified)
+                        StatusOptions.Verified
+                    )
+
                     is Error -> DecksterUiState.Error(result.exception)
                     is Loading -> DecksterUiState.Loading
                 }
@@ -59,8 +72,12 @@ class HomeListViewModel @Inject constructor(
         return when (decksterUiEvent) {
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
             is DecksterUiEvent.OnSearch -> Unit //todo
-            is DecksterUiEvent.OnFilterChange -> Unit //todo
+            is DecksterUiEvent.OnFilterChange -> filterGames(decksterUiEvent.option)
         }
+    }
+
+    private fun filterGames(option: String) {
+        savedStateHandle[GAME_FILTER] = StatusOptions.valueOf(option)
     }
 
     private fun onLoadMore() {
@@ -84,6 +101,7 @@ class HomeListViewModel @Inject constructor(
     companion object {
         var INITIAL_PAGE = 1
         const val SIZE = 20
+        const val GAME_FILTER = "game_status_filter"
     }
 
 }
