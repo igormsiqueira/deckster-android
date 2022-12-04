@@ -47,9 +47,7 @@ class HomeListViewModel @Inject constructor(
             savedStateHandle.getStateFlow(
                 GAME_FILTER,
                 StatusOptions.Verified
-            ).flatMapLatest { query ->
-                repository.getGamesByFilter(query.option)
-            }
+            ).flatMapLatest { filter -> repository.getGamesByFilter(filter.option) }
 
         val choiceStream: Flow<List<Game>> = gameService.loadChoiceGames()
 
@@ -59,7 +57,7 @@ class HomeListViewModel @Inject constructor(
                     is Success -> DecksterUiState.Success(
                         result.data.first,
                         result.data.second,
-                        StatusOptions.Verified
+                        savedStateHandle.get<StatusOptions>(GAME_FILTER) ?: StatusOptions.Verified
                     )
 
                     is Error -> DecksterUiState.Error(result.exception)

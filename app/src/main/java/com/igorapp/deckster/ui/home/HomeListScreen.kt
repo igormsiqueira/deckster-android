@@ -18,6 +18,7 @@ import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.*
+import com.igorapp.deckster.ui.home.StatusOptions.Bookmark
 import com.igorapp.deckster.ui.home.StatusOptions.Verified
 import com.igorapp.deckster.ui.theme.DecksterTheme
 import com.igorapp.deckster.ui.theme.bottomGradientColor
@@ -63,7 +64,7 @@ internal fun HomeListScreen(
                 when (decksterUiState) {
                     is DecksterUiState.Success -> {
                         deckGameListHeaderScreen(gridListState,decksterUiState.choiceGames)
-                        deckGameFilter {
+                        deckGameFilter(decksterUiState.filter) {
                             onEvent(DecksterUiEvent.OnFilterChange(it))
                         }
                         deckGameListScreen(decksterUiState.games)
@@ -94,7 +95,7 @@ class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> 
         get() = sequenceOf(
             DecksterUiState.Loading,
             DecksterUiState.Error(Exception()),
-            DecksterUiState.Success(PreviewFactory.games, PreviewFactory.games, Verified),
+            DecksterUiState.Success(PreviewFactory.games, PreviewFactory.games,Bookmark),
         )
 }
 
