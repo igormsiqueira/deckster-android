@@ -25,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.ImageLoader
@@ -187,26 +188,12 @@ fun GameGridItem(item: Game, idx: Int) {
                 .build(),
             placeholder = painterResource(R.drawable.ic_launcher_foreground),
             contentDescription = stringResource(R.string.app_name),
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.FillHeight,
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
+                /*.size(196.dp, 342.dp)*/
                 .size(342.dp, 196.dp)
         )
-        Row(Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.badge_verified),
-                tint = WhiteIcon,
-                modifier = Modifier
-                    .padding(4.dp),
-                contentDescription = "Verified Icon"
-            )
-            Text(
-                color = Color.White,
-                text = item.game,
-                fontWeight = FontWeight.Bold,
-            )
-
-        }
     }
 }
 
