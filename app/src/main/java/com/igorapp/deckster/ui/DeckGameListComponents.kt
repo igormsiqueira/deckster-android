@@ -1,6 +1,8 @@
 package com.igorapp.deckster.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -12,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -89,7 +92,7 @@ fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: 
                 count = games.size,
                 key = { games[it].id }
             ) { idx ->
-                GameGridItem(games[idx],idx)
+                GameGridItem(games[idx], idx)
             }
         }
     }
@@ -168,11 +171,13 @@ fun LazyListScope.deckGameListScreen(games: List<Game>) {
 @Composable
 fun GameGridItem(item: Game, idx: Int) {
     Box(
-        modifier = Modifier.padding(start = if (idx == 0) {
-            20.dp
-        } else {
-            8.dp
-        }, end = 8.dp),
+        modifier = Modifier.padding(
+            start = if (idx == 0) {
+                20.dp
+            } else {
+                8.dp
+            }, end = 8.dp
+        ),
         contentAlignment = Alignment.BottomStart
     ) {
         AsyncImage(
@@ -207,8 +212,16 @@ fun GameGridItem(item: Game, idx: Int) {
 
 @Composable
 fun GameListItem(item: Game) {
+    var isExpanded by remember { mutableStateOf(false) }
+
     Row(
-        modifier = Modifier.padding(start = 20.dp),
+        modifier = Modifier
+            .padding(start = 20.dp)
+            .animateContentSize()
+            .sizeBasedOnStatus(isExpanded)
+            .clickable {
+                isExpanded = !isExpanded
+            },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -239,6 +252,9 @@ fun GameListItem(item: Game) {
         }
     }
 }
+
+private fun Modifier.sizeBasedOnStatus(isExpanded: Boolean) =
+    composed { if (isExpanded) fillMaxSize() else this }
 
 fun getInputText(input: String) = when (input) {
     "gamepad" -> "\uD83C\uDFAE"

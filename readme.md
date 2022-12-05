@@ -11,7 +11,7 @@ Deckster-android app
 - ~~Main list~~
 - ~~Repackage~~
 - Search
-- List filter
+- ~~List filter~~
 - Bookmarks/Backlog
 - Item details / Item data
 - Testing
