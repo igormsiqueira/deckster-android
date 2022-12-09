@@ -72,6 +72,7 @@ class HomeListViewModel @Inject constructor(
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
             is DecksterUiEvent.OnSearch -> Unit //todo
             is DecksterUiEvent.OnFilterChange -> filterGames(decksterUiEvent.option)
+            DecksterUiEvent.OnSearchToggle -> TODO()
         }
     }
 
