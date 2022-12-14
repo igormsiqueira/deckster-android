@@ -3,9 +3,10 @@
     <!-- Splash Screen Theme. -->
     <style name="Theme.AppSplash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_deck_icon</item>
         <item name="windowSplashScreenAnimationDuration">3000</item>
         <item name="postSplashScreenTheme">@style/Theme.Deckster</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/icon_animated</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/ic_deckicon_white</item>
 
         <!-- Status bar and Nav bar configs -->
         <item name="android:statusBarColor" >@color/teal_200</item>

@@ -10,8 +10,9 @@ Deckster-android app
 - ~~Room setup~~
 - ~~Main list~~
 - ~~Repackage~~
-- Search
+- ~~Search~~
 - ~~List filter~~
 - Bookmarks/Backlog
 - Item details / Item data
 - Testing
+- extract feature modules

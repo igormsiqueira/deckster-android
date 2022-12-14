@@ -1,12 +1,8 @@
 package com.igorapp.deckster.ui
 
-import android.view.SearchEvent
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -26,10 +22,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -61,7 +55,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -74,6 +68,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.igorapp.deckster.R
 import com.igorapp.deckster.feature.home.DecksterUiEvent
+import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
@@ -216,6 +211,15 @@ fun LazyListScope.deckGameListScreen(games: List<Game>) {
     }
 }
 
+fun LazyListScope.searchDeckGameListScreen(games: List<Game>) {
+    items(
+        count = games.size,
+        key = { games[it].id }
+    ) { idx ->
+        SearchGameListItem(games[idx])
+    }
+}
+
 
 @Composable
 fun GameGridItem(item: Game, idx: Int) {
@@ -246,6 +250,43 @@ fun GameGridItem(item: Game, idx: Int) {
 }
 
 @Composable
+fun SearchGameListItem(item: Game) {
+    var isExpanded by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .padding(start = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
+                .crossfade(false)
+                .build(),
+            placeholder = painterResource(R.drawable.ic_launcher_foreground),
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(100.dp, 65.dp)
+                .padding(top = 8.dp)
+        )
+        Column(Modifier.padding(8.dp)) {
+            Text(
+                maxLines = 1,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                text = item.game
+            )
+            Text(
+                color = secondaryText,
+                fontSize = 12.sp,
+                text = "${getInputText(item.input)} ${item.runtime.capitalize(Locale.getDefault())}"
+            )
+        }
+    }
+}
+
+@Composable
 fun GameListItem(item: Game) {
     var isExpanded by remember { mutableStateOf(false) }
     Row(
@@ -259,18 +300,18 @@ fun GameListItem(item: Game) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-//        AsyncImage(
-//            model = ImageRequest.Builder(LocalContext.current)
-//                .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
-//                .crossfade(true)
-//                .build(),
-//            placeholder = painterResource(R.drawable.ic_launcher_foreground),
-//            contentDescription = stringResource(R.string.app_name),
-//            contentScale = ContentScale.Crop,
-//            modifier = Modifier
-//                .clip(RoundedCornerShape(8.dp))
-//                .size(70.dp, 45.dp)
-//        )
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
+                .crossfade(true)
+                .build(),
+            placeholder = painterResource(R.drawable.ic_launcher_foreground),
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .size(70.dp, 45.dp)
+        )
         Column(Modifier.padding(8.dp)) {
             Text(
                 maxLines = 1,
@@ -405,30 +446,37 @@ fun DeckGameListErrorScreen() {
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
-fun Toolbar(onEvent: (onEvent: DecksterUiEvent) -> Unit) {
+fun Toolbar(
+    onEvent: (onEvent: DecksterUiEvent) -> Unit,
+    state: DecksterUiState,
+) {
+    val queryString = if (state is DecksterUiState.Searching) {
+        state.term.orEmpty()
+    } else {
+        ""
+    }
 
     var showSearch by remember { mutableStateOf(false) }
-    var query: String by rememberSaveable { mutableStateOf("") }
+    var query: String by rememberSaveable { mutableStateOf(queryString) }
     var showClearButton by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
-
 
     AnimatedContent(
         targetState = showSearch,
         transitionSpec = {
             if (targetState > initialState) {
                 slideInVertically { height -> height } + fadeIn() with
-                        slideOutVertically { height -> -height } + fadeOut()
+                        slideOutVertically { height -> -height } +
+                        fadeOut()
             } else {
                 slideInVertically { height -> -height } + fadeIn() with
-                        slideOutVertically { height -> height } + fadeOut()
-            }.using(
-                SizeTransform(clip = false)
-            )
+                        slideOutVertically { height -> height } +
+                        fadeOut()
+            }
         }
-    ) { targetState ->
-        if (targetState) {
-            onEvent(DecksterUiEvent.OnSearchToggle)
+    ) { searchIsVisible ->
+
+        if (searchIsVisible) {
             val focusRequester = FocusRequester()
 
             OutlinedTextField(
@@ -441,10 +489,7 @@ fun Toolbar(onEvent: (onEvent: DecksterUiEvent) -> Unit) {
                 },
                 onValueChange = { onQueryChanged ->
                     query = onQueryChanged
-                    if (onQueryChanged.isNotEmpty()) {
-                        // performQuery(onQueryChanged)
-                        onEvent(DecksterUiEvent.OnSearch(query))
-                    }
+                    onEvent(DecksterUiEvent.OnSearch(query))
                 },
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -454,14 +499,21 @@ fun Toolbar(onEvent: (onEvent: DecksterUiEvent) -> Unit) {
                 ),
                 modifier = Modifier
                     .focusRequester(focusRequester)
-                    .fillMaxWidth().padding(bottom = 6.dp)
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .background(
+                        color = topGradientColor
+                    )
                     .onFocusChanged { focusState ->
                         showClearButton = (focusState.isFocused)
                     },
                 maxLines = 1,
                 textStyle = MaterialTheme.typography.subtitle1,
                 singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done
+                ),
                 keyboardActions = KeyboardActions(onDone = {
                     keyboardController?.hide()
                 }),
@@ -470,6 +522,7 @@ fun Toolbar(onEvent: (onEvent: DecksterUiEvent) -> Unit) {
                         if (query.isEmpty()) {
                             keyboardController?.hide()
                             showSearch = false
+                            onEvent(DecksterUiEvent.OnSearchToggle(showSearch))
                         } else {
                             query = ""
                         }
@@ -505,6 +558,7 @@ fun Toolbar(onEvent: (onEvent: DecksterUiEvent) -> Unit) {
                         modifier = Modifier
                             .clickable {
                                 showSearch = !showSearch
+                                onEvent(DecksterUiEvent.OnSearchToggle(showSearch))
                             },
                         tint = WhiteIcon,
                         imageVector = Icons.Filled.Search, contentDescription = ""

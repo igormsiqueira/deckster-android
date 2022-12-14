@@ -14,65 +14,91 @@ import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.home.GameStatus.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeListViewModel @Inject constructor(
-    private val service: Deckster,
+    private val gameService: Deckster,
     private val repository: GameRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private var choice: List<Game> = emptyList()
+    private var games: List<Game> = emptyList()
+    private var _uiState = MutableStateFlow<DecksterUiState>(DecksterUiState.Loading)
+    val uiState: StateFlow<DecksterUiState> = _uiState
+
     init {
         loadFirstPage()
+        setupUiState()
     }
 
-    val uiState: StateFlow<DecksterUiState> = decksterUiState(
-        gameService = service,
-        repository = repository,
-        savedStateHandle = savedStateHandle
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = DecksterUiState.Loading
-    )
+    private fun setupUiState() {
+        viewModelScope.launch {
+            val localGamesStream: Flow<List<Game>> = getFilteredGamesFlow()
+            val spotlightGamesStream: Flow<List<Game>> = gameService.loadChoiceGames()
 
-    private fun decksterUiState(
-        gameService: Deckster,
-        repository: GameRepository,
-        savedStateHandle: SavedStateHandle,
-    ): Flow<DecksterUiState> {
-        val localGamesStream =
-            savedStateHandle.getStateFlow(
-                GAME_FILTER,
-                Verified
-            ).flatMapLatest { filter -> repository.getGamesByFilter(filter.code) }
+            combine(localGamesStream, spotlightGamesStream, ::Pair).asResult()
+                .map { result ->
+                    when (result) {
+                        is Success -> {
+                            games = result.data.first
+                            choice = result.data.second
+                            DecksterUiState.Success(
+                                result.data.first,
+                                result.data.second,
+                                savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
+                            )
+                        }
 
-        val choiceStream: Flow<List<Game>> = gameService.loadChoiceGames()
-
-        return combine(localGamesStream, choiceStream, ::Pair).asResult()
-            .map { result ->
-                when (result) {
-                    is Success -> DecksterUiState.Success(
-                        result.data.first,
-                        result.data.second,
-                        savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
-                    )
-
-                    is Error -> DecksterUiState.Error(result.exception)
-                    is Loading -> DecksterUiState.Loading
+                        is Error -> DecksterUiState.Error(result.exception)
+                        is Loading -> DecksterUiState.Loading
+                    }
+                }.distinctUntilChanged().collect { resultingState ->
+                    _uiState.value = resultingState
                 }
-            }
+        }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun getFilteredGamesFlow() = savedStateHandle.getStateFlow(
+        GAME_FILTER,
+        Verified
+    ).flatMapLatest { filter -> repository.getGamesByFilter(filter.code) }
+
 
     fun onEvent(decksterUiEvent: DecksterUiEvent) {
         return when (decksterUiEvent) {
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
-            is DecksterUiEvent.OnSearch -> Unit //todo
+            is DecksterUiEvent.OnSearchToggle -> {
+                when (decksterUiEvent.searchIsVisible) {
+                    true -> showSearch()
+                    false -> hideSearch()
+                }
+            }
+
+            is DecksterUiEvent.OnSearch -> searchForGames(decksterUiEvent.term)
             is DecksterUiEvent.OnFilterChange -> filterGames(decksterUiEvent.option)
-            DecksterUiEvent.OnSearchToggle -> TODO()
+        }
+    }
+
+    private fun hideSearch() {
+//        setupUiState()
+        _uiState.value = DecksterUiState.Success(games, choice, Verified)
+    }
+
+    private fun showSearch() {
+        _uiState.value = DecksterUiState.Searching()
+    }
+
+    private fun searchForGames(term: String) {
+        viewModelScope.launch {
+            gameService.searchByGame(term).collect { games ->
+                _uiState.value = DecksterUiState.Searching(games, term)
+            }
         }
     }
 
@@ -82,7 +108,7 @@ class HomeListViewModel @Inject constructor(
 
     private fun onLoadMore() {
         viewModelScope.launch {
-            service.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
                 INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
             }
@@ -92,7 +118,7 @@ class HomeListViewModel @Inject constructor(
     private fun loadFirstPage() {
         // TODO: move to splashscreen
         viewModelScope.launch {
-            service.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
             }
         }

@@ -21,7 +21,7 @@ interface DecksterApi {
     ): List<Game>
 
     @GET(API.searchGames)
-    suspend fun searchByName(@Path("q") name: String): List<Game>
+    suspend fun searchByName(@Query("q") name: String): List<Game>
 
     companion object {
         fun create(): DecksterApi {
