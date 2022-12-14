@@ -39,17 +39,12 @@ fun HomeListScreenPreviewLight(@PreviewParameter(HomeListScreenPreviewProvider::
     }
 }
 
-@OptIn(
-    ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class
-)
 @Composable
 internal fun HomeListScreen(
     state: DecksterUiState,
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
     var size by remember { mutableStateOf(Size.Zero) }
-//    val state  =  remember { decksterUiState }
     val listState = rememberLazyListState()
     val gridListState = rememberLazyListState()
     val filterListState = rememberLazyListState()
@@ -73,7 +68,7 @@ internal fun HomeListScreen(
                 when (state) {
                     is DecksterUiState.Error -> TODO()
                     is DecksterUiState.Loading -> item { DeckGameListLoadingIndicator() }
-                    is DecksterUiState.Success -> {
+                    is DecksterUiState.Content -> {
                         deckGameListHeaderScreen(
                             gridListState,
                             state.choiceGames.reversed()
@@ -119,83 +114,12 @@ private fun LazyListScope.searchEmptyState(text: String) {
     }
 }
 
-//        Scaffold(
-//            Modifier.background(topGradientColor),
-//            topBar = { Toolbar(onEvent) }, content = {
-//                Box(
-//                    modifier =
-//                    Modifier
-//                        .fillMaxSize()
-//                        .background(
-//                            brush = Brush.linearGradient(
-//                                colors = listOf(topGradientColor, bottomGradientColor),
-//                            )
-//                        )
-//                        .onGloballyPositioned { coord ->
-//                            size = coord.size.toSize()
-//                        }
-//                ) {
-//                    if (decksterUiState is DecksterUiState.Searching) {
-//                        Text(text = "Search view")
-//                    } else if (decksterUiState is DecksterUiState.Success) {
-//                        LazyColumn(
-//                            state = listState,
-//                            modifier = Modifier.fillMaxSize()
-//                        ) {
-//                            deckGameListHeaderScreen(
-//                                gridListState,
-//                                decksterUiState.choiceGames.reversed()
-//                            )
-//                            deckGameFilter(filterListState, decksterUiState.filter) {
-//                                onEvent(DecksterUiEvent.OnFilterChange(it))
-//                            }
-//                            deckGameListScreen(decksterUiState.games)
-//                        }
-//                    } else {
-//
-//                    }
-//                }
-//            })
-//            LazyColumn(
-//                state = listState,
-//                modifier = Modifier.fillMaxSize()
-//            ) {
-//                item {
-//                    Toolbar(onEvent)
-//                }
-//                when (decksterUiState) {
-//                    is DecksterUiState.Error -> TODO()
-//                    is DecksterUiState.Success -> {
-//                        deckGameListHeaderScreen(
-//                            gridListState,
-//                            decksterUiState.choiceGames.reversed()
-//                        )
-//                        deckGameFilter(filterListState, decksterUiState.filter) {
-//                            onEvent(DecksterUiEvent.OnFilterChange(it))
-//                        }
-//                        deckGameListScreen(decksterUiState.games)
-//
-//                    }
-//
-//                    DecksterUiState.Loading -> item { Text(text = "Loading") }
-//                    DecksterUiState.Searching -> item { Text(text = "Searching") }
-//                }
-//                item {
-//                    listState.onBottomReached {
-//                        onEvent(DecksterUiEvent.OnLoadMore)
-//                    }
-//                }
-//            }
-
-//        }
-
-
 class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> {
     override val values: Sequence<DecksterUiState>
         get() = sequenceOf(
             DecksterUiState.Loading,
             DecksterUiState.Error(Exception()),
-            DecksterUiState.Success(
+            DecksterUiState.Content(
                 PreviewFactory.games,
                 PreviewFactory.games,
                 GameStatus.Verified

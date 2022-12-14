@@ -47,7 +47,7 @@ class HomeListViewModel @Inject constructor(
                         is Success -> {
                             games = result.data.first
                             choice = result.data.second
-                            DecksterUiState.Success(
+                            DecksterUiState.Content(
                                 result.data.first,
                                 result.data.second,
                                 savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
@@ -87,7 +87,7 @@ class HomeListViewModel @Inject constructor(
 
     private fun hideSearch() {
 //        setupUiState()
-        _uiState.value = DecksterUiState.Success(games, choice, Verified)
+        _uiState.value = DecksterUiState.Content(games, choice, Verified)
     }
 
     private fun showSearch() {
