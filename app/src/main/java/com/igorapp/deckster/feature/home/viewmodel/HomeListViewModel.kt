@@ -1,5 +1,6 @@
 package com.igorapp.deckster.feature.home.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -67,7 +68,12 @@ class HomeListViewModel @Inject constructor(
     private fun getFilteredGamesFlow() = savedStateHandle.getStateFlow(
         GAME_FILTER,
         Verified
-    ).flatMapLatest { filter -> repository.getGamesByFilter(filter.code) }
+    ).flatMapLatest { filter ->
+        when (filter.code) {
+            Backlog.code -> repository.getBacklogGames()
+            else -> repository.getGamesByFilter(filter.code)
+        }
+    }
 
 
     fun onEvent(decksterUiEvent: DecksterUiEvent) {
@@ -82,11 +88,17 @@ class HomeListViewModel @Inject constructor(
 
             is DecksterUiEvent.OnSearch -> searchForGames(decksterUiEvent.term)
             is DecksterUiEvent.OnFilterChange -> filterGames(decksterUiEvent.option)
+            is DecksterUiEvent.OnBookmarkToggle -> toggleBookmark(decksterUiEvent.game)
+        }
+    }
+
+    private fun toggleBookmark(game: Game) {
+        viewModelScope.launch {
+            repository.updateGame(game.copy(isBookmarked = game.isBookmarked.not()))
         }
     }
 
     private fun hideSearch() {
-//        setupUiState()
         _uiState.value = DecksterUiState.Content(games, choice, Verified)
     }
 
@@ -125,7 +137,7 @@ class HomeListViewModel @Inject constructor(
     }
 
     companion object {
-        var INITIAL_PAGE = 1
+        var INITIAL_PAGE = 0
         const val SIZE = 20
         const val GAME_FILTER = "game_status_filter"
     }

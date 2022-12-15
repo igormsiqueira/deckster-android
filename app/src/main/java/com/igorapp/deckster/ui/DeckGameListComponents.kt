@@ -2,7 +2,9 @@ package com.igorapp.deckster.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -16,18 +18,25 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.*
@@ -36,20 +45,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -57,7 +61,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.ImageLoader
@@ -73,8 +76,11 @@ import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.ImageUrlBuilder
+import com.igorapp.deckster.ui.utils.dipToPx
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -202,12 +208,14 @@ private fun FilterButton(
     }
 }
 
-fun LazyListScope.deckGameListScreen(games: List<Game>) {
+fun LazyListScope.deckGameListScreen(
+    games: List<Game>, onEvent: (onEvent: DecksterUiEvent) -> Unit,
+) {
     items(
         count = games.size,
         key = { games[it].id }
     ) { idx ->
-        GameListItem(games[idx])
+        GameListItem(games[idx], onEvent)
     }
 }
 
@@ -286,33 +294,57 @@ fun SearchGameListItem(item: Game) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun GameListItem(item: Game) {
-    var isExpanded by remember { mutableStateOf(false) }
+fun GameListItem(
+    item: Game, onEvent: (onEvent: DecksterUiEvent) -> Unit,
+) {
+    val swipeableState = rememberSwipeableState(initialValue = 0)
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    Box(
+        contentAlignment = Alignment.CenterStart,
+        modifier = Modifier
+            .fillMaxWidth()
+            .swipeable(
+                state = swipeableState,
+                anchors = mapOf(
+                    0f to 0,
+                    context.dipToPx(70f) to 1,
+                    context.dipToPx(70f) to 2,
+                ),
+                thresholds = { _, _ ->
+                    FractionalThreshold(0.1f)
+                },
+                orientation = Orientation.Horizontal
+            )
+    ) {
+        BookMarkIcon(scope, swipeableState, onEvent, item)
+        SwipeableGameItem(swipeableState, item)
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun SwipeableGameItem(
+    swipeableState: SwipeableState<Int>,
+    item: Game
+) {
     Row(
         modifier = Modifier
             .padding(start = 20.dp)
-            .animateContentSize()
-            .sizeBasedOnStatus(isExpanded)
-            .clickable {
-                isExpanded = !isExpanded
-            },
+            .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
-                .crossfade(true)
-                .build(),
-            placeholder = painterResource(R.drawable.ic_launcher_foreground),
-            contentDescription = stringResource(R.string.app_name),
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .size(70.dp, 45.dp)
-        )
-        Column(Modifier.padding(8.dp)) {
+        GameCover(item)
+        Column(
+            Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+        ) {
             Text(
                 maxLines = 1,
                 fontWeight = FontWeight.SemiBold,
@@ -328,109 +360,55 @@ fun GameListItem(item: Game) {
     }
 }
 
-enum class States {
-    EXPANDED,
-    COLLAPSED
+@Composable
+private fun GameCover(item: Game) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
+            .crossfade(true)
+            .build(),
+        placeholder = painterResource(R.drawable.ic_launcher_foreground),
+        contentDescription = stringResource(R.string.app_name),
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .size(70.dp, 45.dp)
+    )
 }
 
-@ExperimentalMaterialApi
 @Composable
-fun FullHeightBottomSheet(
-    header: @Composable () -> Unit,
-    body: @Composable () -> Unit
+@OptIn(ExperimentalMaterialApi::class)
+private fun BookMarkIcon(
+    scope: CoroutineScope,
+    swipeableState: SwipeableState<Int>,
+    onEvent: (onEvent: DecksterUiEvent) -> Unit,
+    item: Game,
 ) {
-    val swipeableState = rememberSwipeableState(initialValue = States.COLLAPSED)
-    val scrollState = rememberScrollState()
-
-    BoxWithConstraints {
-        val constraintsScope = this
-        val maxHeight = with(LocalDensity.current) {
-            constraintsScope.maxHeight.toPx()
-        }
-
-        val connection = remember {
-            object : NestedScrollConnection {
-
-                override fun onPreScroll(
-                    available: Offset,
-                    source: NestedScrollSource
-                ): Offset {
-                    val delta = available.y
-                    return if (delta > 0) {
-                        swipeableState.performDrag(delta).toOffset()
-                    } else {
-                        Offset.Zero
-                    }
-                }
-
-                override fun onPostScroll(
-                    consumed: Offset,
-                    available: Offset,
-                    source: NestedScrollSource
-                ): Offset {
-                    val delta = available.y
-                    return swipeableState.performDrag(delta).toOffset()
-                }
-
-                override suspend fun onPreFling(available: Velocity): Velocity {
-                    return if (available.y > 0 && scrollState.value == 0) {
-                        swipeableState.performFling(available.y)
-                        available
-                    } else {
-                        Velocity.Zero
-                    }
-                }
-
-                override suspend fun onPostFling(
-                    consumed: Velocity,
-                    available: Velocity
-                ): Velocity {
-                    swipeableState.performFling(velocity = available.y)
-                    return super.onPostFling(consumed, available)
-                }
-
-                private fun Float.toOffset() = Offset(0f, this)
+    val alpha: Float by animateFloatAsState(
+        targetValue = swipeableState.progress.fraction,
+        animationSpec = tween(durationMillis = 50, easing = FastOutSlowInEasing)
+    )
+    IconButton(
+        modifier = Modifier
+            .padding(start = 28.dp)
+            .graphicsLayer(alpha = alpha),
+        onClick = {
+            scope.launch {
+                onEvent(DecksterUiEvent.OnBookmarkToggle(item))
+                swipeableState.animateTo(0, tween(400, 0))
             }
-        }
-
-        Box(
-            Modifier
-                .swipeable(
-                    state = swipeableState,
-                    orientation = Orientation.Vertical,
-                    anchors = mapOf(
-                        0f to States.EXPANDED,
-                        maxHeight to States.COLLAPSED,
-                    )
-                )
-                .nestedScroll(connection)
-                .offset {
-                    IntOffset(
-                        0,
-                        swipeableState.offset.value.roundToInt()
-                    )
-                }
-        ) {
-            Column(
-                Modifier
-                    .fillMaxHeight()
-                    .background(Color.White)
-            ) {
-                header()
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(scrollState)
-                ) {
-                    body()
-                }
-            }
-        }
+        }) {
+        Icon(
+            tint = Color.White,
+            imageVector = if (item.isBookmarked) {
+                Icons.Rounded.Favorite
+            } else {
+                Icons.Rounded.FavoriteBorder
+            }, contentDescription = ""
+        )
     }
 }
 
-private fun Modifier.sizeBasedOnStatus(isExpanded: Boolean) =
-    composed { if (isExpanded) fillMaxSize() else this }
 
 fun getInputText(input: String) = when (input) {
     "gamepad" -> "\uD83C\uDFAE"

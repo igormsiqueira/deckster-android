@@ -1,8 +1,6 @@
-
 # Deckster
 
 Deckster-android app
-
 
 ## Todo
 
@@ -12,7 +10,9 @@ Deckster-android app
 - ~~Repackage~~
 - ~~Search~~
 - ~~List filter~~
-- Bookmarks/Backlog
+- ~~Bookmarks/Backlog~~
 - Item details / Item data
+- Material you
 - Testing
-- extract feature modules
+- Option to show/hide unplayable
+- Extract feature modules

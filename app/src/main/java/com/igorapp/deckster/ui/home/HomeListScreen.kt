@@ -30,6 +30,7 @@ import com.igorapp.deckster.ui.theme.DecksterTheme
 import com.igorapp.deckster.ui.theme.bottomGradientColor
 import com.igorapp.deckster.ui.theme.steamTypographyBold
 import com.igorapp.deckster.ui.theme.topGradientColor
+import com.igorapp.deckster.ui.utils.onBottomReached
 
 @Preview
 @Composable
@@ -39,6 +40,7 @@ fun HomeListScreenPreviewLight(@PreviewParameter(HomeListScreenPreviewProvider::
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 internal fun HomeListScreen(
     state: DecksterUiState,
@@ -66,7 +68,7 @@ internal fun HomeListScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 when (state) {
-                    is DecksterUiState.Error -> TODO()
+                    is DecksterUiState.Error -> {}
                     is DecksterUiState.Loading -> item { DeckGameListLoadingIndicator() }
                     is DecksterUiState.Content -> {
                         deckGameListHeaderScreen(
@@ -76,28 +78,37 @@ internal fun HomeListScreen(
                         deckGameFilter(filterListState, state.filter) {
                             onEvent(DecksterUiEvent.OnFilterChange(it))
                         }
-                        deckGameListScreen(state.games)
+                        deckGameListScreen(state.games, onEvent)
                     }
 
                     is DecksterUiState.Searching -> {
-                        var text = ""
-
-                        if (state.term.isNullOrBlank()) {
-                            text = "Start a search by typing the name of a game."
-                        } else if (state.games.isEmpty()) {
-                            text = "No results for ${state.term}"
-                        }
-
-                        if (text.isEmpty()) {
-                            searchDeckGameListScreen(state.games)
-                        } else {
-                            searchEmptyState(text)
-                        }
+                        deckGameSearchScreen(state)
+                    }
+                }
+                item {
+                    listState.onBottomReached {
+                        onEvent(DecksterUiEvent.OnLoadMore)
                     }
                 }
             }
         }
     }
+}
+
+private fun LazyListScope.deckGameSearchScreen(state: DecksterUiState.Searching) {
+     var text = ""
+
+     if (state.term.isNullOrBlank()) {
+         text = "Start a search by typing the name of a game."
+     } else if (state.games.isEmpty()) {
+         text = "No results for ${state.term}"
+     }
+
+     if (text.isEmpty()) {
+         searchDeckGameListScreen(state.games)
+     } else {
+         searchEmptyState(text)
+ }
 }
 
 private fun LazyListScope.searchEmptyState(text: String) {
@@ -129,6 +140,6 @@ class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> 
 
 object PreviewFactory {
     val games: List<Game> = mutableListOf(
-        Game("123", "God of War", "3", "keyboard", "proton7-3-2")
+        Game("123", "God of War", "3", "keyboard", "proton7-3-2", false)
     )
 }

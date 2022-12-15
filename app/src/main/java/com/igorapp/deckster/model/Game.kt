@@ -10,5 +10,5 @@ data class Game(
     val status: String,
     val input: String,
     val runtime: String,
-    val isBookmarked: Boolean = false
+    var isBookmarked: Boolean = false
 )
