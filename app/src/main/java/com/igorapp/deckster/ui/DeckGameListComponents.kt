@@ -524,12 +524,24 @@ fun Toolbar(
                     navigationIconContentColor = VerifiedGreen
                 ),
                 title = {
-                    Text(
-                        color = Color.White,
-                        text = "Deck",
-                        style = steamTypographyBold.titleSmall
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            color = Color.White,
+                            text = "Deck",
+                            style = steamTypographyBold.titleSmall
+                        )
+                        Text(
+                            color = Color.White,
+                            fontSize = 30.sp,
+                            text = "Verified",
+                            style = steamTypographyBold.labelSmall,
+                        )
 
+
+                    }
                 },
                 actions = {
                     Icon(

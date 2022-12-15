@@ -34,8 +34,9 @@ val steamTypographyBold = Typography(
         fontSize = 32.sp,
         lineHeight = 24.sp,
         letterSpacing = 5.sp
-    ))
+    ),
 
+)
 
 
 val Typography = Typography(
