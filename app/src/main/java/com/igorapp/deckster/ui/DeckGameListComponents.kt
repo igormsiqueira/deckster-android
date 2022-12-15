@@ -28,15 +28,10 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.*
@@ -75,8 +70,10 @@ import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
-import com.igorapp.deckster.ui.utils.ImageUrlBuilder
 import com.igorapp.deckster.ui.utils.dipToPx
+import com.igorapp.deckster.ui.utils.getCapsuleUrl
+import com.igorapp.deckster.ui.utils.getCapsuleUrl231
+import com.igorapp.deckster.ui.utils.headerCapsuleImageUrl
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 import kotlinx.coroutines.CoroutineScope
@@ -243,7 +240,7 @@ fun GameGridItem(item: Game, idx: Int) {
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(ImageUrlBuilder.getCapsuleHeaderUrl(item.id))
+                .data(item.headerCapsuleImageUrl)
                 .crossfade(true)
                 .build(),
             placeholder = painterResource(R.drawable.ic_launcher_foreground),
@@ -268,7 +265,7 @@ fun SearchGameListItem(item: Game) {
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
+                .data(item.getCapsuleUrl231)
                 .crossfade(false)
                 .build(),
             placeholder = painterResource(R.drawable.ic_launcher_foreground),
@@ -364,7 +361,7 @@ private fun SwipeableGameItem(
 private fun GameCover(item: Game) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
-            .data(ImageUrlBuilder.getCapsuleUrl231(item.id))
+            .data(item.getCapsuleUrl231)
             .crossfade(true)
             .build(),
         placeholder = painterResource(R.drawable.ic_launcher_foreground),
