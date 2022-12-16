@@ -1,6 +1,5 @@
 package com.igorapp.deckster.feature.home.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -64,6 +64,10 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import coil.size.Size
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.HorizontalPagerIndicator
+import com.google.accompanist.pager.PagerState
 import com.igorapp.deckster.R
 import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.feature.home.DecksterUiState
@@ -71,9 +75,8 @@ import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.dipToPx
-import com.igorapp.deckster.ui.utils.getCapsuleUrl
 import com.igorapp.deckster.ui.utils.getCapsuleUrl231
-import com.igorapp.deckster.ui.utils.headerCapsuleImageUrl
+import com.igorapp.deckster.ui.utils.headerCapsule6x3ImageUrl
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 import kotlinx.coroutines.CoroutineScope
@@ -119,29 +122,32 @@ fun GifImage(
     )
 }
 
-fun LazyListScope.deckGameListHeaderScreen(lazyListState: LazyListState, games: List<Game>) {
+@OptIn(ExperimentalPagerApi::class)
+fun LazyListScope.deckGameListHeaderScreen(lazyListState: PagerState, games: List<Game>) {
     item {
         SpotlightGames(lazyListState, games)
     }
 }
 
 @Composable
-@OptIn(ExperimentalSnapperApi::class)
+@OptIn(ExperimentalPagerApi::class)
 fun SpotlightGames(
-    lazyListState: LazyListState,
+    lazyListState: PagerState,
     games: List<Game>
 ) {
-    LazyRow(
-        Modifier.padding(top = 16.dp, bottom = 8.dp),
-        state = lazyListState,
-        flingBehavior = rememberSnapperFlingBehavior(lazyListState),
-    ) {
-        items(
-            count = games.size,
-            key = { games[it].id }
-        ) { idx ->
-            GameGridItem(games[idx], idx)
+    Column(Modifier.fillMaxSize()) {
+        HorizontalPager(count = games.size, state = lazyListState) { page ->
+            GameGridItem(games[page], page)
         }
+        HorizontalPagerIndicator(
+            activeColor = Color.White,
+            indicatorWidth = 12.dp,
+            indicatorHeight = 2.dp,
+            pagerState = lazyListState,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 16.dp),
+        )
     }
 }
 
@@ -230,8 +236,9 @@ fun LazyListScope.searchDeckGameListScreen(games: List<Game>) {
 fun GameGridItem(item: Game, idx: Int) {
     Box(
         modifier = Modifier.padding(
+            top = 16.dp,
             start = if (idx == 0) {
-                20.dp
+                1.dp
             } else {
                 8.dp
             }, end = 8.dp
@@ -240,12 +247,17 @@ fun GameGridItem(item: Game, idx: Int) {
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(item.headerCapsuleImageUrl)
+                .data(item.headerCapsule6x3ImageUrl)
                 .crossfade(true)
                 .build(),
             placeholder = painterResource(R.drawable.ic_launcher_foreground),
             contentDescription = stringResource(R.string.app_name),
-            contentScale = ContentScale.FillHeight,
+            contentScale = ContentScale.FillBounds,
+//            modifier = Modifier
+//                .clip(RoundedCornerShape(0, 0, 10, 10))
+//                .size(396.dp, 342.dp)//maintains proportions!
+////                .size(396.dp, 342.dp)//maintains proportions!
+
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
                 /*.size(196.dp, 342.dp)*/
