@@ -1,15 +1,8 @@
 package com.igorapp.deckster.ui
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -431,7 +424,7 @@ fun DeckGameListErrorScreen() {
 }
 
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Toolbar(
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
@@ -448,122 +441,107 @@ fun Toolbar(
     var showClearButton by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    AnimatedContent(
-        targetState = showSearch,
-        transitionSpec = {
-            if (targetState > initialState) {
-                slideInVertically { height -> height } + fadeIn() with
-                        slideOutVertically { height -> -height } +
-                        fadeOut()
-            } else {
-                slideInVertically { height -> -height } + fadeIn() with
-                        slideOutVertically { height -> height } +
-                        fadeOut()
-            }
-        }
-    ) { searchIsVisible ->
+    if (showSearch) {
+        val focusRequester = FocusRequester()
 
-        if (searchIsVisible) {
-            val focusRequester = FocusRequester()
-
-            OutlinedTextField(
-                value = query,
-                placeholder = {
-                    Text(
-                        color = WhiteIcon,
-                        text = "Search game by Title",
-                    )
+        OutlinedTextField(
+            value = query,
+            placeholder = {
+                Text(
+                    color = WhiteIcon,
+                    text = "Search game by Title",
+                )
+            },
+            onValueChange = { onQueryChanged ->
+                query = onQueryChanged
+                onEvent(DecksterUiEvent.OnSearch(query))
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                textColor = Color.White,
+                placeholderColor = Color.Transparent,
+                cursorColor = PurpleGrey40,
+            ),
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .fillMaxWidth()
+                .height(80.dp)
+                .background(
+                    color = topGradientColor
+                )
+                .onFocusChanged { focusState ->
+                    showClearButton = (focusState.isFocused)
                 },
-                onValueChange = { onQueryChanged ->
-                    query = onQueryChanged
-                    onEvent(DecksterUiEvent.OnSearch(query))
-                },
-                colors = TextFieldDefaults.textFieldColors(
-                    focusedIndicatorColor = Color.Transparent,
-                    textColor = Color.White,
-                    placeholderColor = Color.Transparent,
-                    cursorColor = PurpleGrey40,
-                ),
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .background(
-                        color = topGradientColor
-                    )
-                    .onFocusChanged { focusState ->
-                        showClearButton = (focusState.isFocused)
-                    },
-                maxLines = 1,
-                textStyle = MaterialTheme.typography.subtitle1,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = {
-                    keyboardController?.hide()
-                }),
-                trailingIcon = {
-                    IconButton(onClick = {
-                        if (query.isEmpty()) {
-                            keyboardController?.hide()
-                            showSearch = false
-                            onEvent(DecksterUiEvent.OnSearchToggle(showSearch))
-                        } else {
-                            query = ""
-                        }
-                    }) {
-                        androidx.compose.material.Icon(
-                            imageVector = Icons.Rounded.Clear,
-                            tint = WhiteIcon,
-                            contentDescription = "Clear Icon"
-                        )
+            maxLines = 1,
+            textStyle = MaterialTheme.typography.subtitle1,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(onDone = {
+                keyboardController?.hide()
+            }),
+            trailingIcon = {
+                IconButton(onClick = {
+                    if (query.isEmpty()) {
+                        keyboardController?.hide()
+                        showSearch = false
+                        onEvent(DecksterUiEvent.OnSearchToggle(showSearch))
+                    } else {
+                        query = ""
                     }
-                },
-            )
-            LaunchedEffect(Unit) {
-                focusRequester.requestFocus()
-            }
-        } else {
-            SmallTopAppBar(
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = topGradientColor,
-                    titleContentColor = WhiteIcon,
-                    navigationIconContentColor = VerifiedGreen
-                ),
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            color = Color.White,
-                            text = "Deck",
-                            style = steamTypographyBold.titleSmall
-                        )
-                        Text(
-                            color = Color.White,
-                            fontSize = 30.sp,
-                            text = "Verified",
-                            style = steamTypographyBold.labelSmall,
-                        )
-
-
-                    }
-                },
-                actions = {
-                    Icon(
-                        modifier = Modifier
-                            .clickable {
-                                showSearch = !showSearch
-                                onEvent(DecksterUiEvent.OnSearchToggle(showSearch))
-                            },
+                }) {
+                    androidx.compose.material.Icon(
+                        imageVector = Icons.Rounded.Clear,
                         tint = WhiteIcon,
-                        imageVector = Icons.Filled.Search, contentDescription = ""
+                        contentDescription = "Clear Icon"
                     )
-                },
-            )
+                }
+            },
+        )
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
         }
+    } else {
+        SmallTopAppBar(
+            colors = TopAppBarDefaults.smallTopAppBarColors(
+                containerColor = topGradientColor,
+                titleContentColor = WhiteIcon,
+                navigationIconContentColor = VerifiedGreen
+            ),
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        color = Color.White,
+                        text = "Deck",
+                        style = steamTypographyBold.titleSmall
+                    )
+                    Text(
+                        color = Color.White,
+                        fontSize = 30.sp,
+                        text = "Verified",
+                        style = steamTypographyBold.labelSmall,
+                    )
+
+
+                }
+            },
+            actions = {
+                Icon(
+                    modifier = Modifier
+                        .clickable {
+                            showSearch = !showSearch
+                            onEvent(DecksterUiEvent.OnSearchToggle(showSearch))
+                        },
+                    tint = WhiteIcon,
+                    imageVector = Icons.Filled.Search, contentDescription = ""
+                )
+            },
+        )
+//        }
     }
 }
