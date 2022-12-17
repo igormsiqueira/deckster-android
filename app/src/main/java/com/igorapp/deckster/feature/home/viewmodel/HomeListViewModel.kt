@@ -28,11 +28,11 @@ class HomeListViewModel @Inject constructor(
 
     private var choice: List<Game> = emptyList()
     private var games: List<Game> = emptyList()
+
     private var _uiState = MutableStateFlow<DecksterUiState>(DecksterUiState.Loading)
     val uiState: StateFlow<DecksterUiState> = _uiState
 
     init {
-        loadFirstPage()
         setupUiState()
     }
 
@@ -98,7 +98,8 @@ class HomeListViewModel @Inject constructor(
     }
 
     private fun hideSearch() {
-        _uiState.value = DecksterUiState.Content(games, choice, Verified)
+        _uiState.value =
+            DecksterUiState.Content(games, choice, savedStateHandle[GAME_FILTER] ?: Verified)
     }
 
     private fun showSearch() {

@@ -13,7 +13,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,7 +28,6 @@ import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.*
 import com.igorapp.deckster.ui.theme.DecksterTheme
 import com.igorapp.deckster.ui.theme.bottomGradientColor
-import com.igorapp.deckster.ui.theme.steamTypographyBold
 import com.igorapp.deckster.ui.theme.topGradientColor
 import com.igorapp.deckster.ui.utils.onBottomReached
 
@@ -37,7 +35,7 @@ import com.igorapp.deckster.ui.utils.onBottomReached
 @Composable
 fun HomeListScreenPreviewLight(@PreviewParameter(HomeListScreenPreviewProvider::class) uiState: DecksterUiState) {
     DecksterTheme(darkTheme = false) {
-        HomeListScreen(state = uiState) {}
+        HomeListScreen(uiState) {}
     }
 }
 
@@ -47,12 +45,12 @@ internal fun HomeListScreen(
     state: DecksterUiState,
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
-    var size by remember { mutableStateOf(Size.Zero) }
     val listState = rememberLazyListState()
     val pagerState = rememberPagerState()
     val filterListState = rememberLazyListState()
 
     DecksterTheme {
+
         Scaffold(
             containerColor = topGradientColor,
             contentColor =
@@ -75,7 +73,10 @@ internal fun HomeListScreen(
                     ) {
                         when (state) {
                             is DecksterUiState.Error -> {}
-                            is DecksterUiState.Loading -> item { DeckGameListLoadingIndicator() }
+                            is DecksterUiState.Loading -> item {
+                                DeckGameListLoadingIndicator()
+                            }
+
                             is DecksterUiState.Content -> {
                                 deckGameListHeaderScreen(
                                     pagerState,
@@ -109,7 +110,8 @@ private fun LazyListScope.deckGameSearchScreen(state: DecksterUiState.Searching)
     var text = ""
 
     if (state.term.isNullOrBlank()) {
-        text = "Start a search by typing the name of a game."
+        text =
+            "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to you backlog."
     } else if (state.games.isEmpty()) {
         text = "No results for ${state.term}"
     }
@@ -128,7 +130,6 @@ private fun LazyListScope.searchEmptyState(text: String) {
             color = Color.White,
             fontSize = 14.sp,
             text = text,
-            style = steamTypographyBold.labelSmall,
             modifier = Modifier.padding(16.dp)
         )
         Spacer(modifier = Modifier.padding(top = 20.dp))

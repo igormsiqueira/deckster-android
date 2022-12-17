@@ -73,6 +73,7 @@ import com.igorapp.deckster.ui.utils.headerCapsule6x3ImageUrl
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.roundToInt
@@ -85,12 +86,6 @@ fun DeckGameListLoadingIndicator() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         GifImage()
-        Text(
-            color = Color.White,
-            fontSize = 16.sp,
-            text = "Loading...",
-            style = steamTypographyBold.labelSmall,
-        )
     }
 }
 
@@ -101,17 +96,16 @@ fun GifImage(
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context).components {
         add(ImageDecoderDecoder.Factory())
-    }
-        .build()
+    }.build()
     Image(
         painter = rememberAsyncImagePainter(
-            ImageRequest.Builder(context).data(data = R.drawable.pal)
+            ImageRequest.Builder(context).data(data = R.drawable.pal_splash_tiny_big)
                 .apply(block = {
                     size(Size.ORIGINAL)
                 }).build(), imageLoader = imageLoader
         ),
         contentDescription = null,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.wrapContentSize(),
     )
 }
 
@@ -152,6 +146,7 @@ fun LazyListScope.deckGameFilter(
     filterChanged: (String) -> Unit
 ) {
     val options = GameStatus.values().map(GameStatus::name)
+
     item {
         var filter by remember { mutableStateOf(currentFilter.name) }
         val onSelectionChange = { text: String ->
@@ -161,8 +156,9 @@ fun LazyListScope.deckGameFilter(
         LazyRow(
             state = lazyListState,
             flingBehavior = rememberSnapperFlingBehavior(lazyListState),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier
-                .padding(top = 16.dp, bottom = 16.dp)
+                .padding(top = 16.dp, bottom = 16.dp, end = 16.dp)
                 .fillMaxWidth()
         ) {
             items(
@@ -396,8 +392,10 @@ private fun BookMarkIcon(
             .graphicsLayer(alpha = alpha),
         onClick = {
             scope.launch {
+                val duration = 300
+                swipeableState.animateTo(0, tween(300, 0))
+                delay(300)
                 onEvent(DecksterUiEvent.OnBookmarkToggle(item))
-                swipeableState.animateTo(0, tween(400, 0))
             }
         }) {
         Icon(
