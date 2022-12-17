@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Deckster</string>
+    <string name="game">Deckster %s</string>
 </resources>

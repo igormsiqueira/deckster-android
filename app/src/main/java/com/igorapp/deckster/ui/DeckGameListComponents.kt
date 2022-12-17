@@ -40,6 +40,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -55,6 +56,7 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.ImageDecoderDecoder
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -77,6 +79,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.roundToInt
+
 
 @Composable
 fun DeckGameListLoadingIndicator() {
@@ -120,7 +123,7 @@ fun LazyListScope.deckGameListHeaderScreen(lazyListState: PagerState, games: Lis
 @OptIn(ExperimentalPagerApi::class)
 fun SpotlightGames(
     lazyListState: PagerState,
-    games: List<Game>
+    games: List<Game>,
 ) {
     Column(Modifier.fillMaxSize()) {
         HorizontalPager(count = games.size, state = lazyListState) { page ->
@@ -143,7 +146,7 @@ fun SpotlightGames(
 fun LazyListScope.deckGameFilter(
     lazyListState: LazyListState,
     currentFilter: GameStatus,
-    filterChanged: (String) -> Unit
+    filterChanged: (String) -> Unit,
 ) {
     val options = GameStatus.values().map(GameStatus::name)
 
@@ -176,7 +179,7 @@ private fun FilterButton(
     text: String,
     selectedOption: String,
     onSelectionChange: (String) -> Unit,
-    idx: Int
+    idx: Int,
 ) {
     Button(
         shape = RoundedCornerShape(size = 8.dp),
@@ -203,12 +206,19 @@ private fun FilterButton(
 fun LazyListScope.deckGameListScreen(
     games: List<Game>, onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
-    items(
-        count = games.size,
-        key = { games[it].id }
-    ) { idx ->
-        GameListItem(games[idx], onEvent)
+
+    games.forEachIndexed { _, game ->
+        item {
+            val g = remember { game }
+            GameListItem(g, onEvent)
+        }
     }
+//    items(
+//        count = games.size,
+//        key = { games[it].id }
+//    ) { idx ->
+//        GameListItem(games[idx], onEvent)
+//    }
 }
 
 fun LazyListScope.searchDeckGameListScreen(games: List<Game>) {
@@ -327,12 +337,13 @@ fun GameListItem(
 @Composable
 private fun SwipeableGameItem(
     swipeableState: SwipeableState<Int>,
-    item: Game
+    item: Game,
 ) {
     Row(
         modifier = Modifier
             .padding(start = 20.dp)
             .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
+            .clickable { }
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -360,12 +371,19 @@ private fun SwipeableGameItem(
 
 @Composable
 private fun GameCover(item: Game) {
+    val game = remember {
+        item
+    }
+
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
-            .data(item.getCapsuleUrl231)
-            .crossfade(true)
+            .data(game.getCapsuleUrl231)
+            .crossfade(false)
+            .diskCacheKey(game.id)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
             .build(),
-        placeholder = painterResource(R.drawable.ic_launcher_foreground),
+//        placeholder = painterResource(R.drawable.ic_launcher_foreground),
         contentDescription = stringResource(R.string.app_name),
         contentScale = ContentScale.Crop,
         modifier = Modifier
@@ -382,8 +400,9 @@ private fun BookMarkIcon(
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
     item: Game,
 ) {
+    val targetAlphaForDirection = swipeableState.progress.fraction
     val alpha: Float by animateFloatAsState(
-        targetValue = swipeableState.progress.fraction,
+        targetValue = targetAlphaForDirection,
         animationSpec = tween(durationMillis = 50, easing = FastOutSlowInEasing)
     )
     IconButton(
@@ -392,7 +411,6 @@ private fun BookMarkIcon(
             .graphicsLayer(alpha = alpha),
         onClick = {
             scope.launch {
-                val duration = 300
                 swipeableState.animateTo(0, tween(300, 0))
                 delay(300)
                 onEvent(DecksterUiEvent.OnBookmarkToggle(item))
@@ -400,11 +418,13 @@ private fun BookMarkIcon(
         }) {
         Icon(
             tint = Color.White,
-            imageVector = if (item.isBookmarked) {
+            imageVector =
+            if (item.isBookmarked) {
                 Icons.Rounded.Favorite
             } else {
                 Icons.Rounded.FavoriteBorder
-            }, contentDescription = ""
+            },
+            contentDescription = ""
         )
     }
 }
@@ -540,6 +560,5 @@ fun Toolbar(
                 )
             },
         )
-//        }
     }
 }

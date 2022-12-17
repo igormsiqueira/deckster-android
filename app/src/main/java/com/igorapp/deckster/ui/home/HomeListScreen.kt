@@ -1,6 +1,5 @@
 package com.igorapp.deckster.ui.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,11 +8,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -27,8 +26,7 @@ import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.*
 import com.igorapp.deckster.ui.theme.DecksterTheme
-import com.igorapp.deckster.ui.theme.bottomGradientColor
-import com.igorapp.deckster.ui.theme.topGradientColor
+import com.igorapp.deckster.ui.theme.GradientBackground
 import com.igorapp.deckster.ui.utils.onBottomReached
 
 @Preview
@@ -50,58 +48,52 @@ internal fun HomeListScreen(
     val filterListState = rememberLazyListState()
 
     DecksterTheme {
-
-        Scaffold(
-            containerColor = topGradientColor,
-            contentColor =
-            bottomGradientColor,
-            topBar = { Toolbar(onEvent, state) },
-            content = {
-                Column(
-                    modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(topGradientColor, bottomGradientColor),
-                            )
-                        )
-                ) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize()
+        GradientBackground {
+            Scaffold(
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+                topBar = { Toolbar(onEvent, state) },
+                content = {
+                    Column(
+                        modifier =
+                        Modifier
+                            .fillMaxSize()
                     ) {
-                        when (state) {
-                            is DecksterUiState.Error -> {}
-                            is DecksterUiState.Loading -> item {
-                                DeckGameListLoadingIndicator()
-                            }
-
-                            is DecksterUiState.Content -> {
-                                deckGameListHeaderScreen(
-                                    pagerState,
-                                    state.choiceGames.reversed()
-                                )
-                                deckGameFilter(filterListState, state.filter) {
-                                    onEvent(DecksterUiEvent.OnFilterChange(it))
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            when (state) {
+                                is DecksterUiState.Error -> {}
+                                is DecksterUiState.Loading -> item {
+                                    DeckGameListLoadingIndicator()
                                 }
-                                deckGameListScreen(state.games, onEvent)
-                            }
 
-                            is DecksterUiState.Searching -> {
-                                deckGameSearchScreen(state)
+                                is DecksterUiState.Content -> {
+                                    deckGameListHeaderScreen(
+                                        pagerState,
+                                        state.choiceGames.reversed()
+                                    )
+                                    deckGameFilter(filterListState, state.filter) {
+                                        onEvent(DecksterUiEvent.OnFilterChange(it))
+                                    }
+                                    deckGameListScreen(state.games, onEvent)
+                                }
+
+                                is DecksterUiState.Searching -> {
+                                    deckGameSearchScreen(state)
+                                }
                             }
-                        }
-                        item {
-                            listState.onBottomReached {
-                                onEvent(DecksterUiEvent.OnLoadMore)
+                            item {
+                                listState.onBottomReached {
+                                    onEvent(DecksterUiEvent.OnLoadMore)
+                                }
                             }
                         }
                     }
                 }
-            }
-        )
-
+            )
+        }
     }
 }
 
