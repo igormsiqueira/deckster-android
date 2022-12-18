@@ -1,33 +1,30 @@
 package com.igorapp.deckster.ui.home
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.rememberPagerState
 import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
+import com.igorapp.deckster.platform.Destinations
 import com.igorapp.deckster.ui.*
 import com.igorapp.deckster.ui.theme.DecksterTheme
-import com.igorapp.deckster.ui.theme.GradientBackground
 import com.igorapp.deckster.ui.utils.onBottomReached
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -41,90 +38,65 @@ fun HomeListScreenPreviewLight(@PreviewParameter(HomeListScreenPreviewProvider::
 @Composable
 internal fun HomeListScreen(
     state: DecksterUiState,
+    navController: NavController = rememberNavController(),
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val pagerState = rememberPagerState()
-    val filterListState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
-    DecksterTheme {
-        GradientBackground {
-            Scaffold(
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-                topBar = { Toolbar(onEvent, state) },
-                content = {
-                    Column(
-                        modifier =
-                        Modifier
-                            .fillMaxSize()
-                    ) {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            when (state) {
-                                is DecksterUiState.Error -> {}
-                                is DecksterUiState.Loading -> item {
-                                    DeckGameListLoadingIndicator()
-                                }
-
-                                is DecksterUiState.Content -> {
-                                    deckGameListHeaderScreen(
-                                        pagerState,
-                                        state.choiceGames.reversed()
-                                    )
-                                    deckGameFilter(filterListState, state.filter) {
-                                        onEvent(DecksterUiEvent.OnFilterChange(it))
-                                    }
-                                    deckGameListScreen(state.games, onEvent)
-                                }
-
-                                is DecksterUiState.Searching -> {
-                                    deckGameSearchScreen(state)
-                                }
-                            }
-                            item {
-                                listState.onBottomReached {
-                                    onEvent(DecksterUiEvent.OnLoadMore)
-                                }
-                            }
-                        }
+    Scaffold(
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                scope.launch {
+                    navController.navigate(Destinations.Search.name)
+                }
+            }) {
+                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+            }
+        },
+        topBar = { Toolbar(navController) },
+        content = {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (state) {
+                    is DecksterUiState.Error -> {}
+                    is DecksterUiState.Loading -> loading()
+                    is DecksterUiState.Content -> content(state, onEvent, navController)
+                }
+                item {
+                    listState.onBottomReached {
+                        onEvent(DecksterUiEvent.OnLoadMore)
                     }
                 }
-            )
+            }
         }
-    }
+    )
 }
 
-
-private fun LazyListScope.deckGameSearchScreen(state: DecksterUiState.Searching) {
-    var text = ""
-
-    if (state.term.isNullOrBlank()) {
-        text =
-            "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to you backlog."
-    } else if (state.games.isEmpty()) {
-        text = "No results for ${state.term}"
-    }
-
-    if (text.isEmpty()) {
-        searchDeckGameListScreen(state.games)
-    } else {
-        searchEmptyState(text)
-    }
-}
-
-private fun LazyListScope.searchEmptyState(text: String) {
+private fun LazyListScope.loading() {
     item {
-        Spacer(modifier = Modifier.padding(bottom = 20.dp))
-        Text(
-            color = Color.White,
-            fontSize = 14.sp,
-            text = text,
-            modifier = Modifier.padding(16.dp)
-        )
-        Spacer(modifier = Modifier.padding(top = 20.dp))
+        DeckGameListLoadingIndicator()
+    }
+}
+
+private fun LazyListScope.content(
+    state: DecksterUiState.Content,
+    onEvent: (onEvent: DecksterUiEvent) -> Unit,
+    navController: NavController,
+) {
+    deckGameListHeaderScreen(state.choiceGames.reversed())
+    deckGameFilter(state.filter) {
+        onEvent(DecksterUiEvent.OnFilterChange(it))
+    }
+
+    if (state.filter == GameStatus.Backlog) {
+        deckBacklogGameListScreen(navController, state.games,onEvent)
+    } else {
+        deckGameListScreen(navController, state.games, onEvent)
     }
 }
 

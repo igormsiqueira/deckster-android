@@ -1,5 +1,6 @@
 package com.igorapp.deckster.feature.home.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +12,8 @@ import com.igorapp.deckster.network.Deckster
 import com.igorapp.deckster.network.Result.*
 import com.igorapp.deckster.network.asResult
 import com.igorapp.deckster.ui.home.GameStatus
-import com.igorapp.deckster.ui.home.GameStatus.*
+import com.igorapp.deckster.ui.home.GameStatus.Verified
+import com.igorapp.deckster.ui.home.GameStatus.valueOf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,7 +25,7 @@ import javax.inject.Inject
 class HomeListViewModel @Inject constructor(
     private val gameService: Deckster,
     private val repository: GameRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private var choice: List<Game> = emptyList()
@@ -69,7 +71,8 @@ class HomeListViewModel @Inject constructor(
         Verified
     ).flatMapLatest { filter ->
         when (filter.code) {
-            Backlog.code -> repository.getBacklogGames()
+            GameStatus.Backlog.code ->
+                repository.getBacklogGames()
             else -> repository.getGamesByFilter(filter.code)
         }
     }
@@ -78,13 +81,6 @@ class HomeListViewModel @Inject constructor(
     fun onEvent(decksterUiEvent: DecksterUiEvent) {
         return when (decksterUiEvent) {
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
-            is DecksterUiEvent.OnSearchToggle -> {
-                when (decksterUiEvent.searchIsVisible) {
-                    true -> showSearch()
-                    false -> hideSearch()
-                }
-            }
-
             is DecksterUiEvent.OnSearch -> searchForGames(decksterUiEvent.term)
             is DecksterUiEvent.OnFilterChange -> filterGames(decksterUiEvent.option)
             is DecksterUiEvent.OnBookmarkToggle -> toggleBookmark(decksterUiEvent.game)
@@ -92,8 +88,9 @@ class HomeListViewModel @Inject constructor(
     }
 
     private fun toggleBookmark(game: Game) {
+        Log.d("GAMETOGGLE", "GAMETOGGLE ${game.game} to ${game.isBookmarked.not()}")
         viewModelScope.launch {
-            repository.updateGame(game.copy(isBookmarked = game.isBookmarked.not()))
+            repository.updateGame(game.id, !game.isBookmarked)
         }
     }
 
@@ -103,15 +100,15 @@ class HomeListViewModel @Inject constructor(
     }
 
     private fun showSearch() {
-        _uiState.value = DecksterUiState.Searching()
+//        _uiState.value = DecksterUiState.Searching()
     }
 
     private fun searchForGames(term: String) {
-        viewModelScope.launch {
-            gameService.searchByGame(term).collect { games ->
-                _uiState.value = DecksterUiState.Searching(games, term)
-            }
-        }
+//        viewModelScope.launch {
+//            gameService.searchByGame(term).collect { games ->
+//                _uiState.value = DecksterUiState.Searching(games, term)
+//            }
+//        }
     }
 
     private fun filterGames(option: String) {
