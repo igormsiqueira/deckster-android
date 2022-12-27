@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.igorapp.deckster.data.GameRepository
 import com.igorapp.deckster.feature.home.DecksterSearchUiState
 import com.igorapp.deckster.feature.home.DecksterUiEvent
-import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.network.Deckster
 import com.igorapp.deckster.ui.home.GameStatus.valueOf
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,14 +32,8 @@ class SearchListViewModel @Inject constructor(
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
             is DecksterUiEvent.OnSearch -> searchForGames(decksterUiEvent.term)
             is DecksterUiEvent.OnFilterChange -> filterGames(decksterUiEvent.option)
-            is DecksterUiEvent.OnBookmarkToggle -> toggleBookmark(decksterUiEvent.game)
+            else -> {}
         }
-    }
-
-    private fun toggleBookmark(game: Game) {
-//        viewModelScope.launch {
-//            repository.updateGame(game.copy(isBookmarked = game.isBookmarked.not()))
-//        }
     }
 
     private fun searchForGames(term: String) {

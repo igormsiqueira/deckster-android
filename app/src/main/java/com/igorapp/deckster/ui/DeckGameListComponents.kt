@@ -96,9 +96,12 @@ fun GifImage(
     )
 }
 
-fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
+fun LazyListScope.deckGameListHeaderScreen(
+    games: List<Game>,
+    onEvent: (onEvent: DecksterUiEvent) -> Unit,
+) {
     item {
-        SpotlightGames(games)
+        SpotlightGames(games, onEvent)
     }
 }
 
@@ -106,12 +109,13 @@ fun LazyListScope.deckGameListHeaderScreen(games: List<Game>) {
 @OptIn(ExperimentalPagerApi::class)
 fun SpotlightGames(
     games: List<Game>,
+    onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
     val pagerState = rememberPagerState()
 
     Column(Modifier.fillMaxSize()) {
         HorizontalPager(count = games.size, state = pagerState) { page ->
-            GameGridItem(games[page], page)
+            GameGridItem(games[page], page, onEvent)
         }
         HorizontalPagerIndicator(
             activeColor = Color.White,
@@ -202,13 +206,13 @@ fun LazyListScope.deckGameListScreen(
 fun LazyListScope.deckBacklogGameListScreen(
     navController: NavController,
     games: List<Game>,
-    onEvent: (onEvent: DecksterUiEvent) -> Unit
+    onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
     items(
         count = games.size,
         key = { games[it].id }
     ) { idx ->
-        GameBookmarkListItem(navController, games[idx], idx,onEvent)
+        GameBookmarkListItem(navController, games[idx], idx, onEvent)
     }
 }
 
@@ -223,7 +227,8 @@ fun LazyListScope.searchDeckGameListScreen(games: List<Game>) {
 
 
 @Composable
-fun GameGridItem(item: Game, idx: Int) {
+fun GameGridItem(item: Game, idx: Int, onEvent: (onEvent: DecksterUiEvent) -> Unit) {
+    val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier.padding(
             top = 16.dp,
@@ -235,30 +240,57 @@ fun GameGridItem(item: Game, idx: Int) {
         ),
         contentAlignment = Alignment.BottomStart
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(item.headerCapsule6x3ImageUrl)
-                .crossfade(true)
-                .build(),
-            placeholder = painterResource(R.drawable.ic_launcher_foreground),
-            contentDescription = stringResource(R.string.app_name),
-            contentScale = ContentScale.FillBounds,
+        val isBookmarked = remember { mutableStateOf(item.isBookmarked) }
+        HeaderImage(item)
+        IconButton(
+            onClick = {
+                scope.launch {
+                    isBookmarked.value = !isBookmarked.value
+                    onEvent(DecksterUiEvent.OnBookmarkToggle(item))
+                }
+            }) {
+            Icon(
+                tint = Color.White,
+                imageVector = if (isBookmarked.value) {
+                    Icons.Rounded.Favorite
+                } else {
+                    Icons.Rounded.FavoriteBorder
+                },
+                contentDescription = ""
+            )
+        }
+
+    }
+}
+
+@Composable
+private fun HeaderImage(item: Game) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(item.headerCapsule6x3ImageUrl)
+            .crossfade(true)
+            .build(),
+        placeholder = painterResource(R.drawable.ic_launcher_foreground),
+        contentDescription = stringResource(R.string.app_name),
+        contentScale = ContentScale.FillBounds,
 //            modifier = Modifier
 //                .clip(RoundedCornerShape(0, 0, 10, 10))
 //                .size(396.dp, 342.dp)//maintains proportions!
 ////                .size(396.dp, 342.dp)//maintains proportions!
 
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
 //                .size(196.dp, 342.dp)
-                .size(342.dp, 196.dp)
-        )
-    }
+            .size(342.dp, 196.dp)
+    )
 }
 
 @Composable
 fun SearchGameListItem(item: Game) {
+    val scope = rememberCoroutineScope()
     var isExpanded by remember { mutableStateOf(false) }
+    val isBookmarked = remember { mutableStateOf(item.isBookmarked) }
+
     Row(
         modifier = Modifier
             .padding(start = 16.dp),
@@ -290,6 +322,23 @@ fun SearchGameListItem(item: Game) {
                 text = "${getInputText(item.input)} ${item.runtime.capitalize(Locale.getDefault())}"
             )
         }
+        IconButton(
+            onClick = {
+                scope.launch {
+                    isBookmarked.value = !isBookmarked.value
+//                    onEvent(DecksterUiEvent.OnBookmarkToggle(item))
+                }
+            }) {
+            Icon(
+                tint = Color.White,
+                imageVector = if (isBookmarked.value) {
+                    Icons.Rounded.Favorite
+                } else {
+                    Icons.Rounded.FavoriteBorder
+                },
+                contentDescription = ""
+            )
+        }
     }
 }
 
@@ -308,7 +357,8 @@ fun GameBookmarkListItem(
             .fillMaxWidth()
             .clickable {
                 navController.navigate(Destinations.Details.name)
-            } .swipeable(
+            }
+            .swipeable(
                 state = swipeableState,
                 anchors = mapOf(
                     0f to 0,

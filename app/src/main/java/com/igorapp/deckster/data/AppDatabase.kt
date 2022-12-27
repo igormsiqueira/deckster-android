@@ -11,21 +11,27 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
 
     companion object {
-
         private var INSTANCE: AppDatabase? = null
 
-        fun getDatabase(context: Context): AppDatabase {
-            val temp = INSTANCE
-            if (temp != null) {
-                return temp
-            }
 
+        fun getInstance(context: Context): AppDatabase {
             synchronized(this) {
-                val instance = Room.databaseBuilder(context.applicationContext,
-                    AppDatabase::class.java,
-                    "game-data-base").build()
-                INSTANCE = instance
+                var instance = INSTANCE
+
+                if (instance == null) {
+                    instance = Room.databaseBuilder(
+                        context.applicationContext,
+                        AppDatabase::class.java,
+                        "gamedb"
+                    ).allowMainThreadQueries()
+                        .fallbackToDestructiveMigration()
+                        .build()
+
+                    INSTANCE = instance
+                }
+
                 return instance
+
             }
         }
     }

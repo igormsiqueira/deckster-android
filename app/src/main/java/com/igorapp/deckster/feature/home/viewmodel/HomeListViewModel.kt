@@ -1,6 +1,5 @@
 package com.igorapp.deckster.feature.home.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +14,6 @@ import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.home.GameStatus.Verified
 import com.igorapp.deckster.ui.home.GameStatus.valueOf
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -28,27 +26,24 @@ class HomeListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private var choice: List<Game> = emptyList()
-    private var games: List<Game> = emptyList()
 
     private var _uiState = MutableStateFlow<DecksterUiState>(DecksterUiState.Loading)
     val uiState: StateFlow<DecksterUiState> = _uiState
 
     init {
+        loadFirstPage()
         setupUiState()
     }
 
     private fun setupUiState() {
         viewModelScope.launch {
             val localGamesStream: Flow<List<Game>> = getFilteredGamesFlow()
-            val spotlightGamesStream: Flow<List<Game>> = gameService.loadChoiceGames()
+            val spotlightGamesStream: Flow<List<Game>> = repository.getSpotlightGames()
 
             combine(localGamesStream, spotlightGamesStream, ::Pair).asResult()
                 .map { result ->
                     when (result) {
                         is Success -> {
-                            games = result.data.first
-                            choice = result.data.second
                             DecksterUiState.Content(
                                 result.data.first,
                                 result.data.second,
@@ -59,7 +54,7 @@ class HomeListViewModel @Inject constructor(
                         is Error -> DecksterUiState.Error(result.exception)
                         is Loading -> DecksterUiState.Loading
                     }
-                }.distinctUntilChanged().collect { resultingState ->
+                }.collect { resultingState ->
                     _uiState.value = resultingState
                 }
         }
@@ -71,8 +66,7 @@ class HomeListViewModel @Inject constructor(
         Verified
     ).flatMapLatest { filter ->
         when (filter.code) {
-            GameStatus.Backlog.code ->
-                repository.getBacklogGames()
+            GameStatus.Backlog.code -> repository.getBacklogGames()
             else -> repository.getGamesByFilter(filter.code)
         }
     }
@@ -81,34 +75,16 @@ class HomeListViewModel @Inject constructor(
     fun onEvent(decksterUiEvent: DecksterUiEvent) {
         return when (decksterUiEvent) {
             is DecksterUiEvent.OnLoadMore -> onLoadMore()
-            is DecksterUiEvent.OnSearch -> searchForGames(decksterUiEvent.term)
             is DecksterUiEvent.OnFilterChange -> filterGames(decksterUiEvent.option)
             is DecksterUiEvent.OnBookmarkToggle -> toggleBookmark(decksterUiEvent.game)
+            is DecksterUiEvent.OnSearch -> Unit
         }
     }
 
     private fun toggleBookmark(game: Game) {
-        Log.d("GAMETOGGLE", "GAMETOGGLE ${game.game} to ${game.isBookmarked.not()}")
         viewModelScope.launch {
             repository.updateGame(game.id, !game.isBookmarked)
         }
-    }
-
-    private fun hideSearch() {
-        _uiState.value =
-            DecksterUiState.Content(games, choice, savedStateHandle[GAME_FILTER] ?: Verified)
-    }
-
-    private fun showSearch() {
-//        _uiState.value = DecksterUiState.Searching()
-    }
-
-    private fun searchForGames(term: String) {
-//        viewModelScope.launch {
-//            gameService.searchByGame(term).collect { games ->
-//                _uiState.value = DecksterUiState.Searching(games, term)
-//            }
-//        }
     }
 
     private fun filterGames(option: String) {
@@ -116,21 +92,27 @@ class HomeListViewModel @Inject constructor(
     }
 
     private fun onLoadMore() {
-        viewModelScope.launch {
-            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
-                repository.addGames(games)
-                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
-            }
-        }
+//        viewModelScope.launch {
+//            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
+//                repository.addGames(games)
+//            }
+//            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+//                repository.addGames(games)
+//                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
+//            }
+//        }
     }
 
     private fun loadFirstPage() {
-        // TODO: move to splashscreen
-        viewModelScope.launch {
-            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
-                repository.addGames(games)
-            }
-        }
+//        // TODO: move to splashscreen
+//        viewModelScope.launch {
+//            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
+//                // repository.addGames(games)
+//            }
+//            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+//                repository.addGames(games)
+//            }
+//        }
     }
 
     companion object {

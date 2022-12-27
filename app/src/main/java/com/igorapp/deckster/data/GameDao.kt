@@ -15,10 +15,16 @@ interface GameDao {
     @Query("SELECT * FROM game where isBookmarked = 1")
     fun getBookmarks(): Flow<List<Game>>
 
+    @Query("SELECT * FROM game where spotlight = 1")
+    fun getSpotlightGames(): Flow<List<Game>>
+
     @Query("SELECT * FROM game where status =:filter order by game asc")
     fun getGamesByFilter(filter: Int): Flow<List<Game>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Query("SELECT * FROM game  where id=:id")
+    fun getGamesById(id: String): Flow<List<Game>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(games: List<Game>)
 
     @Query("UPDATE game set isBookmarked=:saved where id=:id")

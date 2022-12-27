@@ -88,13 +88,14 @@ private fun LazyListScope.content(
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
     navController: NavController,
 ) {
-    deckGameListHeaderScreen(state.choiceGames.reversed())
+    deckGameListHeaderScreen(state.choiceGames.reversed(), onEvent)
+
     deckGameFilter(state.filter) {
         onEvent(DecksterUiEvent.OnFilterChange(it))
     }
 
     if (state.filter == GameStatus.Backlog) {
-        deckBacklogGameListScreen(navController, state.games,onEvent)
+        deckBacklogGameListScreen(navController, state.games, onEvent)
     } else {
         deckGameListScreen(navController, state.games, onEvent)
     }

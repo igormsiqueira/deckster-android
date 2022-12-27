@@ -7,7 +7,6 @@
         <item name="postSplashScreenTheme">@style/Theme.Deckster</item>
         <item name="android:windowSplashScreenBehavior">icon_preferred</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/icon_animated</item>
-        <item name="android:windowSplashScreenBrandingImage">@drawable/ic_deckicon_white</item>
 
         <!-- Status bar and Nav bar configs -->
         <item name="android:statusBarColor">@color/teal_200</item>

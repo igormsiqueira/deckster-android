@@ -27,13 +27,13 @@ object MainModule {
 class DataModule {
     @Provides
     fun provideDao(@ApplicationContext appContext: Context): GameDao {
-        return AppDatabase.getDatabase(appContext).gameDao()
+        return AppDatabase.getInstance(appContext).gameDao()
     }
 
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext appContext: Context): AppDatabase {
-        return AppDatabase.getDatabase(appContext)
+        return AppDatabase.getInstance(appContext)
     }
 
 }
