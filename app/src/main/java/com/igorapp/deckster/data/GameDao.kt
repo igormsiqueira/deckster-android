@@ -22,7 +22,7 @@ interface GameDao {
     fun getGamesByFilter(filter: Int): Flow<List<Game>>
 
     @Query("SELECT * FROM game  where id=:id")
-    fun getGamesById(id: String): Flow<List<Game>>
+    fun getGameById(id: String): Flow<Game>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(games: List<Game>)

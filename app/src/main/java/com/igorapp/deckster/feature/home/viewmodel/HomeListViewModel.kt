@@ -14,6 +14,7 @@ import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.home.GameStatus.Verified
 import com.igorapp.deckster.ui.home.GameStatus.valueOf
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -92,27 +93,27 @@ class HomeListViewModel @Inject constructor(
     }
 
     private fun onLoadMore() {
-//        viewModelScope.launch {
-//            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
-//                repository.addGames(games)
-//            }
-//            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
-//                repository.addGames(games)
-//                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
-//            }
-//        }
+        viewModelScope.launch {
+            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
+                repository.addGames(games)
+            }
+            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+                repository.addGames(games)
+                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
+            }
+        }
     }
 
     private fun loadFirstPage() {
 //        // TODO: move to splashscreen
-//        viewModelScope.launch {
-//            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
-//                // repository.addGames(games)
-//            }
-//            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
-//                repository.addGames(games)
-//            }
-//        }
+        viewModelScope.launch {
+            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
+                // repository.addGames(games)
+            }
+            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+                repository.addGames(games)
+            }
+        }
     }
 
     companion object {

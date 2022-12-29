@@ -10,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import model.SteamShots
 import javax.inject.Singleton
 
 @Module
@@ -19,6 +20,16 @@ object MainModule {
     @Provides
     @Singleton
     fun providesApi() = Deckster(DecksterApi.create())
+
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object GameSourceModule {
+
+    @Provides
+    @Singleton
+    fun provideSteamShots() = SteamShots()
 
 }
 

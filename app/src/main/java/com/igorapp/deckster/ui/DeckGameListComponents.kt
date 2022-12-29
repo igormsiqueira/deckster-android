@@ -52,6 +52,7 @@ import com.igorapp.deckster.R
 import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.platform.Destinations
+import com.igorapp.deckster.platform.gameDetails
 import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.dipToPx
@@ -264,7 +265,7 @@ fun GameGridItem(item: Game, idx: Int, onEvent: (onEvent: DecksterUiEvent) -> Un
 }
 
 @Composable
-private fun HeaderImage(item: Game) {
+ fun HeaderImage(item: Game) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(item.headerCapsule6x3ImageUrl)
@@ -356,7 +357,7 @@ fun GameBookmarkListItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                navController.navigate(Destinations.Details.name)
+                navController.navigate(Destinations.gameDetails(item.id))
             }
             .swipeable(
                 state = swipeableState,
@@ -390,7 +391,7 @@ fun GameListItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                navController.navigate(Destinations.Details.name)
+                navController.navigate(Destinations.gameDetails(item.id))
             }
             .swipeable(
                 state = swipeableState,

@@ -10,14 +10,21 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.igorapp.deckster.feature.home.DecksterDetailUiState
 import com.igorapp.deckster.feature.home.DecksterSearchUiState
 import com.igorapp.deckster.feature.home.DecksterUiState
+import com.igorapp.deckster.feature.home.viewmodel.GameDetailsViewModel
 import com.igorapp.deckster.feature.home.viewmodel.HomeListViewModel
 import com.igorapp.deckster.feature.home.viewmodel.SearchListViewModel
+import com.igorapp.deckster.platform.Destinations.Companion.gameDetailsArgs
+import com.igorapp.deckster.ui.home.GameDetailsScreen
 import com.igorapp.deckster.ui.home.HomeListScreen
 import com.igorapp.deckster.ui.home.SearchListScreen
 import com.igorapp.deckster.ui.theme.DecksterTheme
@@ -37,9 +44,14 @@ class MainActivity : ComponentActivity() {
                 GradientBackground {
                     NavHost(
                         navController = navController,
-                        startDestination = Destinations.Home.name) {
+                        startDestination = Destinations.Home.name
+                    ) {
                         composable(Destinations.Home.name) { HomeListScreen(navController) }
-                        composable(Destinations.Details.name) { Text(text = "Game Details") }
+                        composable("details/{gameId}",
+//                            gameDetails,
+                            gameDetailsArgs) {
+                            GamesDetailsScreen(navController)
+                        }
                         composable(Destinations.Settings.name) { Text(text = "Settings") }
                         composable(Destinations.Search.name) {
                             SearchGamesScreen(navController)
@@ -71,12 +83,37 @@ class MainActivity : ComponentActivity() {
         val state: DecksterSearchUiState by viewModel.uiState.collectAsStateWithLifecycle()
         SearchListScreen(state, navController, viewModel::onEvent)
     }
+
+    @OptIn(ExperimentalLifecycleComposeApi::class)
+    @Composable
+    fun GamesDetailsScreen(
+        navController: NavController,
+        viewModel: GameDetailsViewModel = hiltViewModel(),
+    ) {
+        val state: DecksterDetailUiState by viewModel.uiState.collectAsStateWithLifecycle()
+        GameDetailsScreen(state, navController, viewModel::onEvent)
+    }
 }
 
 enum class Destinations {
     Home,
     Search,
     Settings,
-    Details
+    Details;
+
+    companion object {
+        val gameDetailsArgs: List<NamedNavArgument> =
+            listOf(navArgument(Arguments.gameId.name) { type = NavType.StringType })
+        val gameDetails: String = gameDetails()
+    }
 }
+
+fun Destinations.Companion.gameDetails(gameId: String = Arguments.gameId.name): String {
+    return "${Destinations.Details.name.lowercase()}/$gameId"
+}
+
+enum class Arguments {
+    gameId
+}
+
 

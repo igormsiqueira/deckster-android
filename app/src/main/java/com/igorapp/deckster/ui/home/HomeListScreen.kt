@@ -22,6 +22,7 @@ import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.platform.Destinations
 import com.igorapp.deckster.ui.*
+import com.igorapp.deckster.ui.home.GameStatus.*
 import com.igorapp.deckster.ui.theme.DecksterTheme
 import com.igorapp.deckster.ui.utils.onBottomReached
 import kotlinx.coroutines.launch
@@ -89,15 +90,14 @@ private fun LazyListScope.content(
     navController: NavController,
 ) {
     deckGameListHeaderScreen(state.choiceGames.reversed(), onEvent)
-
-    deckGameFilter(state.filter) {
-        onEvent(DecksterUiEvent.OnFilterChange(it))
-    }
-
-    if (state.filter == GameStatus.Backlog) {
-        deckBacklogGameListScreen(navController, state.games, onEvent)
-    } else {
-        deckGameListScreen(navController, state.games, onEvent)
+    deckGameFilter(state.filter) { onEvent(DecksterUiEvent.OnFilterChange(it)) }
+    when (state.filter) {
+        Backlog -> deckBacklogGameListScreen(navController, state.games, onEvent)
+        Playable, Verified -> deckGameListScreen(
+            navController,
+            state.games,
+            onEvent
+        )
     }
 }
 
@@ -109,7 +109,7 @@ class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> 
             DecksterUiState.Content(
                 PreviewFactory.games,
                 PreviewFactory.games,
-                GameStatus.Verified
+                Verified
             ),
         )
 }
