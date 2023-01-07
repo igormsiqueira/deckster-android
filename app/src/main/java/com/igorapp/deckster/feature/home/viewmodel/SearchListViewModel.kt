@@ -7,6 +7,7 @@ import com.igorapp.deckster.data.GameRepository
 import com.igorapp.deckster.feature.home.DecksterSearchUiState
 import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.network.Deckster
+import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.home.GameStatus.valueOf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +51,11 @@ class SearchListViewModel @Inject constructor(
 
     private fun onLoadMore() {
         viewModelScope.launch {
-            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+            gameService.loadGames(
+                INITIAL_PAGE,
+                SIZE,
+                savedStateHandle.get<GameStatus>(HomeListViewModel.GAME_FILTER) ?: GameStatus.Verified
+            ).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
                 INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
             }

@@ -1,5 +1,6 @@
 package com.igorapp.deckster.feature.home.viewmodel
 
+import SteamShotsFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,14 +13,16 @@ import com.igorapp.deckster.network.Result
 import com.igorapp.deckster.network.asResult
 import com.igorapp.deckster.platform.Arguments
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.launch
 import model.GameInfoResult
-import model.SteamShots
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,12 +30,15 @@ class GameDetailsViewModel @Inject constructor(
     private val gameService: Deckster,
     private val repository: GameRepository,
     private val savedStateHandle: SavedStateHandle,
-    private val steamShots: SteamShots,
 ) : ViewModel() {
 
     private val gameId: String = checkNotNull(savedStateHandle[Arguments.gameId.name])
+    private val localGame: Flow<Game> =
+        repository.searchGameById(gameId).onEmpty { gameService.searchById(gameId) }
+
     private val game: Flow<Game> = repository.searchGameById(gameId)
-    private val gameInfo: Flow<GameInfoResult?> = steamShots.obtain(gameId)
+    private val gameInfo: Flow<GameInfoResult?> =
+        SteamShotsFlow(forId = gameId).flowOn(Dispatchers.IO)
 
 
     private var _uiState = MutableStateFlow<DecksterDetailUiState>(DecksterDetailUiState.Loading)
@@ -48,7 +54,7 @@ class GameDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(game, gameInfo, ::Pair).asResult().map { result ->
+            combine(localGame, gameInfo, ::Pair).asResult().map { result ->
                 when (result) {
                     is Result.Error -> DecksterDetailUiState.Error(result.exception)
                     is Result.Success -> DecksterDetailUiState.Content(result.data)
@@ -61,7 +67,9 @@ class GameDetailsViewModel @Inject constructor(
     }
 
     private fun onBookmarkToggle(game: Game) {
-
+        viewModelScope.launch {
+            repository.updateGame(game.id, !game.isBookmarked)
+        }
     }
 }
 

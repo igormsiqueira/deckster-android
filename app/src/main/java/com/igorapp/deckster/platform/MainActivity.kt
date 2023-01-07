@@ -23,6 +23,8 @@ import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.feature.home.viewmodel.GameDetailsViewModel
 import com.igorapp.deckster.feature.home.viewmodel.HomeListViewModel
 import com.igorapp.deckster.feature.home.viewmodel.SearchListViewModel
+import com.igorapp.deckster.feature.home.viewmodel.SplashScreenViewModel
+import com.igorapp.deckster.platform.Destinations.Companion.gameDetails
 import com.igorapp.deckster.platform.Destinations.Companion.gameDetailsArgs
 import com.igorapp.deckster.ui.home.GameDetailsScreen
 import com.igorapp.deckster.ui.home.HomeListScreen
@@ -36,9 +38,20 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 //        WindowCompat.setDecorFitsSystemWindows(window, false)
-        installSplashScreen()
+        val splash = installSplashScreen().apply {
+//            setKeepOnScreenCondition {
+//                true
+//            }
+        }
         super.onCreate(savedInstanceState)
         setContent {
+            val splashScreenViewModel: SplashScreenViewModel = hiltViewModel()
+            splashScreenViewModel.loadFirstPage {
+                splash.setKeepOnScreenCondition {
+                    false
+                }
+            }
+
             val navController = rememberNavController()
             DecksterTheme {
                 GradientBackground {
@@ -47,9 +60,10 @@ class MainActivity : ComponentActivity() {
                         startDestination = Destinations.Home.name
                     ) {
                         composable(Destinations.Home.name) { HomeListScreen(navController) }
-                        composable("details/{gameId}",
-//                            gameDetails,
-                            gameDetailsArgs) {
+                        composable(
+                            gameDetails,
+                            gameDetailsArgs
+                        ) {
                             GamesDetailsScreen(navController)
                         }
                         composable(Destinations.Settings.name) { Text(text = "Settings") }
@@ -104,12 +118,8 @@ enum class Destinations {
     companion object {
         val gameDetailsArgs: List<NamedNavArgument> =
             listOf(navArgument(Arguments.gameId.name) { type = NavType.StringType })
-        val gameDetails: String = gameDetails()
+        val gameDetails: String = "details/{${Arguments.gameId.name}}"
     }
-}
-
-fun Destinations.Companion.gameDetails(gameId: String = Arguments.gameId.name): String {
-    return "${Destinations.Details.name.lowercase()}/$gameId"
 }
 
 enum class Arguments {

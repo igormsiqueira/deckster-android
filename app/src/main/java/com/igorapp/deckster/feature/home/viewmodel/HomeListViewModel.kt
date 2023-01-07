@@ -94,10 +94,10 @@ class HomeListViewModel @Inject constructor(
 
     private fun onLoadMore() {
         viewModelScope.launch {
-            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
-                repository.addGames(games)
-            }
-            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+//            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
+//                repository.addGames(games)
+//            }
+            gameService.loadGames(INITIAL_PAGE, SIZE,savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
                 INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
             }
@@ -110,7 +110,11 @@ class HomeListViewModel @Inject constructor(
             gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
                 // repository.addGames(games)
             }
-            gameService.loadGames(INITIAL_PAGE, SIZE).flowOn(Dispatchers.IO).collect { games ->
+            gameService.loadGames(
+                INITIAL_PAGE,
+                SIZE,
+                savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
+            ).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
             }
         }
@@ -118,7 +122,7 @@ class HomeListViewModel @Inject constructor(
 
     companion object {
         var INITIAL_PAGE = 0
-        const val SIZE = 20
+        const val SIZE = 320
         const val GAME_FILTER = "game_status_filter"
     }
 

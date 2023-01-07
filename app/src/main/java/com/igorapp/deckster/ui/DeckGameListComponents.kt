@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -50,14 +51,15 @@ import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import com.igorapp.deckster.R
 import com.igorapp.deckster.feature.home.DecksterUiEvent
+import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.platform.Destinations
-import com.igorapp.deckster.platform.gameDetails
 import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.dipToPx
 import com.igorapp.deckster.ui.utils.getCapsuleUrl231
 import com.igorapp.deckster.ui.utils.headerCapsule6x3ImageUrl
+import com.igorapp.deckster.ui.utils.navigateToGameDetails
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 import kotlinx.coroutines.CoroutineScope
@@ -98,25 +100,25 @@ fun GifImage(
 }
 
 fun LazyListScope.deckGameListHeaderScreen(
-    games: List<Game>,
+    state: DecksterUiState.Content,
+    navController: NavController,
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
-    item {
-        SpotlightGames(games, onEvent)
-    }
+    item { SpotlightGames(state.choiceGames, navController, onEvent) }
 }
 
 @Composable
 @OptIn(ExperimentalPagerApi::class)
 fun SpotlightGames(
     games: List<Game>,
+    navController: NavController = rememberNavController(),
     onEvent: (onEvent: DecksterUiEvent) -> Unit,
 ) {
     val pagerState = rememberPagerState()
 
     Column(Modifier.fillMaxSize()) {
         HorizontalPager(count = games.size, state = pagerState) { page ->
-            GameGridItem(games[page], page, onEvent)
+            GameGridItem(games[page], page, navController, onEvent)
         }
         HorizontalPagerIndicator(
             activeColor = Color.White,
@@ -133,15 +135,14 @@ fun SpotlightGames(
 
 @OptIn(ExperimentalSnapperApi::class)
 fun LazyListScope.deckGameFilter(
-    currentFilter: GameStatus,
+    state: DecksterUiState.Content,
     filterChanged: (String) -> Unit,
 ) {
-
     val options = GameStatus.values().map(GameStatus::name)
 
     item {
         val filterListState = rememberLazyListState()
-        var filter by remember { mutableStateOf(currentFilter.name) }
+        var filter by remember { mutableStateOf(state.filter.name) }
         val onSelectionChange = { text: String ->
             filter = text
             filterChanged(filter)
@@ -217,28 +218,37 @@ fun LazyListScope.deckBacklogGameListScreen(
     }
 }
 
-fun LazyListScope.searchDeckGameListScreen(games: List<Game>) {
+fun LazyListScope.searchDeckGameListScreen(games: List<Game>, navController: NavController) {
     items(
         count = games.size,
         key = { games[it].id }
     ) { idx ->
-        SearchGameListItem(games[idx])
+        SearchGameListItem(games[idx], navController)
     }
 }
 
 
 @Composable
-fun GameGridItem(item: Game, idx: Int, onEvent: (onEvent: DecksterUiEvent) -> Unit) {
+fun GameGridItem(
+    item: Game,
+    idx: Int,
+    navController: NavController,
+    onEvent: (onEvent: DecksterUiEvent) -> Unit
+) {
     val scope = rememberCoroutineScope()
     Box(
-        modifier = Modifier.padding(
-            top = 16.dp,
-            start = if (idx == 0) {
-                1.dp
-            } else {
-                8.dp
-            }, end = 8.dp
-        ),
+        modifier = Modifier
+            .padding(
+                top = 16.dp,
+                start = if (idx == 0) {
+                    1.dp
+                } else {
+                    8.dp
+                }, end = 8.dp
+            )
+            .clickable {
+                navController.navigateToGameDetails(item.id)
+            },
         contentAlignment = Alignment.BottomStart
     ) {
         val isBookmarked = remember { mutableStateOf(item.isBookmarked) }
@@ -265,7 +275,7 @@ fun GameGridItem(item: Game, idx: Int, onEvent: (onEvent: DecksterUiEvent) -> Un
 }
 
 @Composable
- fun HeaderImage(item: Game) {
+fun HeaderImage(item: Game) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(item.headerCapsule6x3ImageUrl)
@@ -287,14 +297,14 @@ fun GameGridItem(item: Game, idx: Int, onEvent: (onEvent: DecksterUiEvent) -> Un
 }
 
 @Composable
-fun SearchGameListItem(item: Game) {
-    val scope = rememberCoroutineScope()
-    var isExpanded by remember { mutableStateOf(false) }
-    val isBookmarked = remember { mutableStateOf(item.isBookmarked) }
+fun SearchGameListItem(item: Game, navController: NavController) {
 
     Row(
         modifier = Modifier
-            .padding(start = 16.dp),
+            .padding(start = 16.dp)
+            .clickable {
+                navController.navigateToGameDetails(item.id)
+            },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -305,7 +315,7 @@ fun SearchGameListItem(item: Game) {
                 .build(),
             placeholder = painterResource(R.drawable.ic_launcher_foreground),
             contentDescription = stringResource(R.string.app_name),
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .size(100.dp, 65.dp)
                 .padding(top = 8.dp)
@@ -321,23 +331,6 @@ fun SearchGameListItem(item: Game) {
                 color = secondaryText,
                 fontSize = 12.sp,
                 text = "${getInputText(item.input)} ${item.runtime.capitalize(Locale.getDefault())}"
-            )
-        }
-        IconButton(
-            onClick = {
-                scope.launch {
-                    isBookmarked.value = !isBookmarked.value
-//                    onEvent(DecksterUiEvent.OnBookmarkToggle(item))
-                }
-            }) {
-            Icon(
-                tint = Color.White,
-                imageVector = if (isBookmarked.value) {
-                    Icons.Rounded.Favorite
-                } else {
-                    Icons.Rounded.FavoriteBorder
-                },
-                contentDescription = ""
             )
         }
     }
@@ -357,7 +350,7 @@ fun GameBookmarkListItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                navController.navigate(Destinations.gameDetails(item.id))
+                navController.navigateToGameDetails(item.id)
             }
             .swipeable(
                 state = swipeableState,
@@ -391,7 +384,7 @@ fun GameListItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                navController.navigate(Destinations.gameDetails(item.id))
+                navController.navigateToGameDetails(item.id)
             }
             .swipeable(
                 state = swipeableState,
@@ -430,7 +423,8 @@ private fun SwipeableBookmarkGameItem(
             maxLines = 1,
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
-            text = "${idx}.", modifier = Modifier.padding(end = 6.dp))
+            text = "${idx}.", modifier = Modifier.padding(end = 6.dp)
+        )
         GameCover(item)
         Column(
             Modifier
