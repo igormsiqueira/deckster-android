@@ -1,7 +1,7 @@
 package com.igorapp.deckster.feature.home
 
+import GameInfoResult
 import com.igorapp.deckster.model.Game
-import model.GameInfoResult
 
 
 sealed interface DecksterUiEvent {

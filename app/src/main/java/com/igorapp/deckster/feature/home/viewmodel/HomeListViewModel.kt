@@ -107,9 +107,6 @@ class HomeListViewModel @Inject constructor(
     private fun loadFirstPage() {
 //        // TODO: move to splashscreen
         viewModelScope.launch {
-            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
-                // repository.addGames(games)
-            }
             gameService.loadGames(
                 INITIAL_PAGE,
                 SIZE,
@@ -117,6 +114,7 @@ class HomeListViewModel @Inject constructor(
             ).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
             }
+            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games -> repository.addGames(games) }
         }
     }
 

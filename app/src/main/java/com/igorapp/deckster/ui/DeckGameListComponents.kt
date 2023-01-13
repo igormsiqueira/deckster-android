@@ -570,7 +570,7 @@ fun Toolbar(
                     color = Color.White,
                     fontSize = 30.sp,
                     text = "Verified",
-                    style = steamTypographyBold.labelSmall,
+                    style = steamTypographyBold.labelMedium,
                 )
             }
         },

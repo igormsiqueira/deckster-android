@@ -44,6 +44,13 @@ val steamTypographyBold = Typography(
     ),
     labelSmall = TextStyle(
         fontFamily = motiva,
+        fontWeight = FontWeight.Black,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    ),
+    labelMedium =  TextStyle(
+        fontFamily = motiva,
         fontWeight = FontWeight.Normal,
         fontSize = 32.sp,
         lineHeight = 24.sp,

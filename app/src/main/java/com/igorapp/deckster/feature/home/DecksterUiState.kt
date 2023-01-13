@@ -1,8 +1,8 @@
 package com.igorapp.deckster.feature.home
 
+import GameInfoResult
 import com.igorapp.deckster.model.Game
 import com.igorapp.deckster.ui.home.GameStatus
-import model.GameInfoResult
 
 sealed class DecksterUiState {
     class Error(throwable: Throwable?) : DecksterUiState()

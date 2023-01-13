@@ -1,5 +1,6 @@
 package com.igorapp.deckster.feature.home.viewmodel
 
+import GameInfoResult
 import SteamShotsFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.launch
-import model.GameInfoResult
 import javax.inject.Inject
 
 @HiltViewModel
