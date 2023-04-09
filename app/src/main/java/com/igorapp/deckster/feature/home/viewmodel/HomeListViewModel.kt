@@ -109,7 +109,7 @@ class HomeListViewModel @Inject constructor(
 
     companion object {
         var INITIAL_PAGE = 0
-        const val SIZE = 320
+        const val SIZE = 15
         const val GAME_FILTER = "game_status_filter"
     }
 

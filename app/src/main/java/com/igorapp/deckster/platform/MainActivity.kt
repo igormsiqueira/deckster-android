@@ -37,21 +37,12 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-//        WindowCompat.setDecorFitsSystemWindows(window, false)
-        val splash = installSplashScreen().apply {
-//            setKeepOnScreenCondition {
-//                true
-//            }
-        }
+
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         setContent {
             val splashScreenViewModel: SplashScreenViewModel = hiltViewModel()
-            splashScreenViewModel.loadFirstPage {
-                splash.setKeepOnScreenCondition {
-                    false
-                }
-            }
-
+            splashScreenViewModel.loadFirstPage { }
             val navController = rememberNavController()
             DecksterTheme {
                 GradientBackground {
