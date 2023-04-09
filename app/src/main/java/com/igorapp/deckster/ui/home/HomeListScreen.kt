@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -75,9 +76,11 @@ private fun FloatingActionButton(
     scope: CoroutineScope,
     navController: NavController
 ) {
-    FloatingActionButton(onClick = {
-        scope.launch { navController.navigateToSearch() }
-    }) {
+    FloatingActionButton(
+        shape = CircleShape,
+        onClick = {
+            scope.launch { navController.navigateToSearch() }
+        }) {
         Icon(imageVector = Icons.Default.Search, contentDescription = null)
     }
 }

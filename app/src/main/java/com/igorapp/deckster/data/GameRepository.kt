@@ -12,4 +12,5 @@ class GameRepository @Inject constructor(private val gameDao: GameDao) {
     fun getGamesByFilter(filter: Int) = gameDao.getGamesByFilter(filter)
     fun getSpotlightGames() = gameDao.getSpotlightGames()
     fun getGames() = gameDao.getAll()
+    suspend fun getGamesCount() = gameDao.getGamesCount()
 }

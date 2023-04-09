@@ -27,37 +27,40 @@ class HomeListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-
     private var _uiState = MutableStateFlow<DecksterUiState>(DecksterUiState.Loading)
     val uiState: StateFlow<DecksterUiState> = _uiState
 
-    init {
-        loadFirstPage()
-        setupUiState()
+    private val localGamesStream: Flow<List<Game>> = getFilteredGamesFlow()
+    private val spotlightGamesStream: Flow<List<Game>> = repository.getSpotlightGames()
+    private val state = setUi(localGamesStream, spotlightGamesStream)
+
+    private fun setUi(
+        localGamesStream: Flow<List<Game>>,
+        spotlightGamesStream: Flow<List<Game>>
+    ): Flow<DecksterUiState> {
+        return combine(localGamesStream, spotlightGamesStream, ::Pair).asResult()
+            .map { result ->
+                when (result) {
+                    is Success -> {
+                        DecksterUiState.Content(
+                            result.data.first,
+                            result.data.second,
+                            savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
+                        )
+                    }
+
+                    is Error -> DecksterUiState.Error(result.exception)
+                    is Loading -> DecksterUiState.Loading
+                }
+            }
     }
 
-    private fun setupUiState() {
+
+    init {
         viewModelScope.launch {
-            val localGamesStream: Flow<List<Game>> = getFilteredGamesFlow()
-            val spotlightGamesStream: Flow<List<Game>> = repository.getSpotlightGames()
-
-            combine(localGamesStream, spotlightGamesStream, ::Pair).asResult()
-                .map { result ->
-                    when (result) {
-                        is Success -> {
-                            DecksterUiState.Content(
-                                result.data.first,
-                                result.data.second,
-                                savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
-                            )
-                        }
-
-                        is Error -> DecksterUiState.Error(result.exception)
-                        is Loading -> DecksterUiState.Loading
-                    }
-                }.collect { resultingState ->
-                    _uiState.value = resultingState
-                }
+            state.collect { resultingState ->
+                _uiState.value = resultingState
+            }
         }
     }
 
@@ -71,7 +74,6 @@ class HomeListViewModel @Inject constructor(
             else -> repository.getGamesByFilter(filter.code)
         }
     }
-
 
     fun onEvent(decksterUiEvent: DecksterUiEvent) {
         return when (decksterUiEvent) {
@@ -94,27 +96,14 @@ class HomeListViewModel @Inject constructor(
 
     private fun onLoadMore() {
         viewModelScope.launch {
-//            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games ->
-//                repository.addGames(games)
-//            }
-            gameService.loadGames(INITIAL_PAGE, SIZE,savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified).flowOn(Dispatchers.IO).collect { games ->
-                repository.addGames(games)
-                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
-            }
-        }
-    }
-
-    private fun loadFirstPage() {
-//        // TODO: move to splashscreen
-        viewModelScope.launch {
             gameService.loadGames(
                 INITIAL_PAGE,
                 SIZE,
                 savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
             ).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
+                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
             }
-            gameService.loadChoiceGames().flowOn(Dispatchers.IO).collect { games -> repository.addGames(games) }
         }
     }
 

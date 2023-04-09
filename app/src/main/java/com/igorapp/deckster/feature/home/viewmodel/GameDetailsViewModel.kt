@@ -36,10 +36,8 @@ class GameDetailsViewModel @Inject constructor(
     private val localGame: Flow<Game> =
         repository.searchGameById(gameId).onEmpty { gameService.searchById(gameId) }
 
-    private val game: Flow<Game> = repository.searchGameById(gameId)
     private val gameInfo: Flow<GameInfoResult?> =
         SteamShotsFlow(forId = gameId).flowOn(Dispatchers.IO)
-
 
     private var _uiState = MutableStateFlow<DecksterDetailUiState>(DecksterDetailUiState.Loading)
     val uiState: StateFlow<DecksterDetailUiState> = _uiState

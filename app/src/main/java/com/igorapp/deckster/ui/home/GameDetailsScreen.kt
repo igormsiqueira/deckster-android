@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropScaffoldState
@@ -34,12 +35,14 @@ import androidx.compose.material.ScrollableTabRow
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,14 +59,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -120,6 +126,10 @@ fun GameDetailsScreen(
     val scale by animateFloatAsState(
         targetValue = if (backdropState.currentValue == BackdropValue.Revealed) 1f else 0f,
     )
+    var peekHeight by remember { mutableStateOf(66.dp) }
+//    var peekHeight by remember { mutableStateOf(BackdropScaffoldDefaults.PeekHeight) }
+    val density = LocalDensity.current
+
 
     GradientBackground {
         BackdropScaffold(
@@ -129,7 +139,7 @@ fun GameDetailsScreen(
             frontLayerScrimColor = Color.Transparent,
             backLayerContentColor = MaterialTheme.colorScheme.onBackground,
             backLayerBackgroundColor = Color.Unspecified,
-            peekHeight = 0.dp,
+            peekHeight = peekHeight,
             headerHeight = 390.dp,
             frontLayerContent = {
                 if (state is DecksterDetailUiState.Content) {
@@ -141,26 +151,25 @@ fun GameDetailsScreen(
                         Button(
                             modifier = Modifier
                                 .padding(top = 16.dp)
-                                .size(60.dp, 4.dp)
+                                .size(60.dp, 4.dp).alpha(0.4f)
                                 .size(scale.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
                             onClick = { /*TODO*/ }) {
                         }
-                        Text(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            textAlign = TextAlign.Center,
-                            text = gameInfo?.data?.name.toString(),
-                            style = steamTypographyBold.titleLarge
-                        )
                         DeckStatusChip(game, onEvent)
                         GameInfoTab(gameInfo)
                     }
                 }
 
-            },
-            appBar = { /*TODO*/ }, backLayerContent = {
+            }, backLayerContent = {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .padding(8.dp),
+                    shape = CircleShape, onClick = {}
+                ) {
+                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                }
                 when (state) {
                     is DecksterDetailUiState.Content -> GamePhotosScreen(state.gameData)
                     is DecksterDetailUiState.Error -> Text(text = "Error ${state.throwable}")
@@ -171,10 +180,29 @@ fun GameDetailsScreen(
                         CircularProgressIndicator()
                     }
                 }
+            },
+            appBar = {
+                if (state is DecksterDetailUiState.Content) {
+                    val (game, gameInfo) = state.gameData
+                    Text(
+                        color = Color.White,
+
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onSizeChanged {
+                                with(density) {
+                                    peekHeight = it.height.toDp()
+                                }
+                            }
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        text = gameInfo?.data?.name.toString(),
+                        style = steamTypographyBold.titleLarge
+                    )
+                }
+
             }
         )
-
-
     }
 }
 
@@ -185,7 +213,7 @@ fun GameDetailsScreen(
 @Composable
 fun GameInfoTab(gameInfo: GameInfoResult?) {
 
-    val pages = listOf("About","On Deck" ,"Screenshots", "Videos", "Achievements", "Info")
+    val pages = listOf("About", "On Deck", "Screenshots", "Videos", "Achievements", "Info")
     val pagerState = rememberPagerState()
     val scroll = rememberScrollState(0)
     val scope = rememberCoroutineScope()
@@ -339,6 +367,7 @@ fun GameInfoTab(gameInfo: GameInfoResult?) {
                     style = steamTypographyBold.titleMedium
                 )
             }
+
             1 -> {
                 Text(
                     text = "TODO Deck expanded report + protonDB info ", //TODO()
@@ -388,7 +417,8 @@ fun GameInfoTab(gameInfo: GameInfoResult?) {
 
             else -> {
                 Text(
-                    text = gameInfo?.data?.developers?.joinToString("-").orEmpty() + "\n" + gameInfo?.data?.aboutTheGame.orEmpty(),
+                    text = gameInfo?.data?.developers?.joinToString("-")
+                        .orEmpty() + "\n" + gameInfo?.data?.aboutTheGame.orEmpty(),
                     modifier = modifier
                 )
             }

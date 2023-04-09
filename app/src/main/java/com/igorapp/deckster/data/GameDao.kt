@@ -30,6 +30,9 @@ interface GameDao {
     @Query("UPDATE game set isBookmarked=:saved where id=:id")
     suspend fun updateGame(id: String, saved: Boolean)
 
+    @Query("SELECT COUNT(*) FROM game ")
+    suspend fun getGamesCount(): Int
+
 
 }
 

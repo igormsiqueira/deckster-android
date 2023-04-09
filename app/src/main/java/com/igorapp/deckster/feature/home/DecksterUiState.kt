@@ -30,3 +30,10 @@ sealed class DecksterDetailUiState {
     data class Content(val gameData: Pair<Game, GameInfoResult?>) : DecksterDetailUiState()
 }
 
+
+sealed class DecksterSettingsUiState {
+    object Loading : DecksterSettingsUiState()
+    class Error(val throwable: Throwable?) : DecksterSettingsUiState()
+    data class Content(val gameData: Pair<Game, GameInfoResult?>) : DecksterSettingsUiState()
+}
+

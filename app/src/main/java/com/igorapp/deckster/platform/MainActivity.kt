@@ -107,6 +107,16 @@ class MainActivity : ComponentActivity() {
         val state: DecksterDetailUiState by viewModel.uiState.collectAsStateWithLifecycle()
         GameDetailsScreen(state, navController, viewModel::onEvent)
     }
+
+    @OptIn(ExperimentalLifecycleComposeApi::class)
+    @Composable
+    fun SettingsScreen(
+        navController: NavController,
+        viewModel: HomeListViewModel = hiltViewModel(),
+    ) {
+        val state: DecksterUiState by viewModel.uiState.collectAsStateWithLifecycle()
+        HomeListScreen(state, navController, viewModel::onEvent)
+    }
 }
 
 enum class Destinations {
