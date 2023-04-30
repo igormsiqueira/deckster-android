@@ -36,7 +36,7 @@ fun LazyListScope.deckGameList(
     } else {
         when (state.filter) {
             GameStatus.Backlog -> deckBacklogGameListScreen(navController, state.games, onEvent)
-            GameStatus.Playable, GameStatus.Verified, GameStatus.Unknown -> deckGameListScreen(
+            GameStatus.Playable, GameStatus.AllGames, GameStatus.Unknown -> deckGameListScreen(
                 navController,
                 state.games,
                 onEvent

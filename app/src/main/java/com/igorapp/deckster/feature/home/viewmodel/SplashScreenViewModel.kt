@@ -33,7 +33,7 @@ class SplashScreenViewModel @Inject constructor(
                 INITIAL_PAGE,
                 SIZE,
                 savedStateHandle.get<GameStatus>(HomeListViewModel.GAME_FILTER)
-                    ?: GameStatus.Verified
+                    ?: GameStatus.AllGames
             )
             combine(spotGames, allGames, ::Pair).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games.first + games.second)

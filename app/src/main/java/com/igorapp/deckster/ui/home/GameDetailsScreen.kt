@@ -213,7 +213,7 @@ fun GameDetailsScreen(
 @Composable
 fun GameInfoTab(gameInfo: GameInfoResult?) {
 
-    val pages = listOf("About", "On Deck", "Screenshots", "Videos", "Achievements", "Info")
+    val pages = listOf("About", "On Deck", "Screenshots", "Videos")
     val pagerState = rememberPagerState()
     val scroll = rememberScrollState(0)
     val scope = rememberCoroutineScope()
@@ -638,7 +638,7 @@ fun getStatusIcon(status: String): Int {
     } ?: GameStatus.Unknown
 
     return when (gameStatus) {
-        GameStatus.Verified -> R.drawable.badge_verified
+        GameStatus.AllGames -> R.drawable.badge_verified
         GameStatus.Playable -> R.drawable.badge_playable
         else -> R.drawable.badge_unknown
     }

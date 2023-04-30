@@ -57,7 +57,7 @@ fun SearchToolbar(
         placeholder = {
             Text(
                 color = WhiteIcon,
-                text = "Search game by Title",
+                text = "Search by typing the name of a game.",
             )
         },
         onValueChange = { onQueryChanged ->

@@ -110,7 +110,7 @@ class HomeListScreenPreviewProvider : PreviewParameterProvider<DecksterUiState> 
             DecksterUiState.Content(
                 PreviewFactory.games,
                 PreviewFactory.games.reversed(),
-                Verified
+                AllGames
             ),
         )
 }

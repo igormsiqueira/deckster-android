@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
@@ -50,12 +52,14 @@ import com.igorapp.deckster.R
 import com.igorapp.deckster.feature.home.DecksterUiEvent
 import com.igorapp.deckster.feature.home.DecksterUiState
 import com.igorapp.deckster.model.Game
+import com.igorapp.deckster.ui.home.GameStatus
 import com.igorapp.deckster.ui.theme.*
 import com.igorapp.deckster.ui.utils.dipToPx
 import com.igorapp.deckster.ui.utils.getCapsuleUrl231
 import com.igorapp.deckster.ui.utils.headerCapsule6x3ImageUrl
 import com.igorapp.deckster.ui.utils.navigateToGameDetails
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
+import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
@@ -133,9 +137,9 @@ fun LazyListScope.deckGameFilter(
     filterChanged: (String) -> Unit,
 ) {
     item {
-        Spacer(modifier = Modifier.padding(16.dp))
+        Spacer(modifier = Modifier.padding(4.dp))
     }
-   /* val options = GameStatus.values().map(GameStatus::name)
+    val options = listOf(GameStatus.AllGames, GameStatus.Backlog).map(GameStatus::name)
 
     item {
         val filterListState = rememberLazyListState()
@@ -147,10 +151,10 @@ fun LazyListScope.deckGameFilter(
         LazyRow(
             state = filterListState,
             flingBehavior = rememberSnapperFlingBehavior(filterListState),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .padding(top = 16.dp, bottom = 16.dp, end = 16.dp)
-                .fillMaxWidth()
+                .wrapContentSize()
         ) {
             items(
                 count = options.size,
@@ -159,7 +163,7 @@ fun LazyListScope.deckGameFilter(
                 FilterButton(options[idx], filter, onSelectionChange, idx)
             }
         }
-    }*/
+    }
 }
 
 @Composable
@@ -172,6 +176,7 @@ private fun FilterButton(
     Button(
         shape = RoundedCornerShape(size = 8.dp),
         modifier = Modifier
+            .fillMaxWidth()
             .alpha(
                 if (text == selectedOption) {
                     1.0f
@@ -295,7 +300,6 @@ fun HeaderImage(item: Game) {
 
 @Composable
 fun SearchGameListItem(item: Game, navController: NavController) {
-
     Row(
         modifier = Modifier
             .padding(start = 16.dp)
@@ -519,7 +523,6 @@ private fun BookMarkIcon(
         onClick = {
             scope.launch {
                 swipeableState.animateTo(0, tween(300, 0))
-//                delay(300)
                 onEvent(DecksterUiEvent.OnBookmarkToggle(item))
             }
         }) {

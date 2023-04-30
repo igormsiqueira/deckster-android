@@ -36,6 +36,8 @@ internal fun SearchListScreen(
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = { SearchToolbar(onEvent, state, navController) },
         content = {
+
+
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -58,11 +60,7 @@ internal fun SearchListScreen(
 
                         is DecksterSearchUiState.Empty -> {
                             searchEmptyState(
-                                if (state.term.isNullOrBlank()) {
-                                    "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to you backlog."
-                                } else {
-                                    "No results for ${state.term}"
-                                }
+                                getEmptyStateText(state.term)
                             )
                         }
                     }
@@ -77,21 +75,19 @@ private fun LazyListScope.deckGameSearchScreen(
     state: DecksterSearchUiState.Content,
     navController: NavController
 ) {
-    var text = ""
-
-    if (state.term.isNullOrBlank()) {
-        text =
-            "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to you backlog."
-    } else if (state.games.isEmpty()) {
-        text = "No results for \"${state.term}\""
-    }
-
-    if (text.isEmpty()) {
+    if (state.games.isEmpty())
+        searchEmptyState(getEmptyStateText(state.term))
+    else
         searchDeckGameListScreen(state.games, navController)
-    } else {
-        searchEmptyState(text)
-    }
+
 }
+
+private fun getEmptyStateText(term: String?) =
+    if (term.isNullOrBlank()) {
+        "Unplayable games still show in the search and can be added to you backlog.\nCheck the details page for proton configuration tips that might make and unplayable game playable."
+    } else {
+        "No results for $term"
+    }
 
 private fun LazyListScope.searchEmptyState(text: String) {
     item {

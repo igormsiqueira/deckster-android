@@ -11,7 +11,7 @@ import com.igorapp.deckster.network.Deckster
 import com.igorapp.deckster.network.Result.*
 import com.igorapp.deckster.network.asResult
 import com.igorapp.deckster.ui.home.GameStatus
-import com.igorapp.deckster.ui.home.GameStatus.Verified
+import com.igorapp.deckster.ui.home.GameStatus.AllGames
 import com.igorapp.deckster.ui.home.GameStatus.valueOf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +45,7 @@ class HomeListViewModel @Inject constructor(
                         DecksterUiState.Content(
                             result.data.first,
                             result.data.second,
-                            savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
+                            savedStateHandle.get<GameStatus>(GAME_FILTER) ?: AllGames
                         )
                     }
 
@@ -67,7 +67,7 @@ class HomeListViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun getFilteredGamesFlow() = savedStateHandle.getStateFlow(
         GAME_FILTER,
-        Verified
+        AllGames
     ).flatMapLatest { filter ->
         when (filter.code) {
             GameStatus.Backlog.code -> repository.getBacklogGames()
@@ -99,7 +99,7 @@ class HomeListViewModel @Inject constructor(
             gameService.loadGames(
                 INITIAL_PAGE,
                 SIZE,
-                savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
+                savedStateHandle.get<GameStatus>(GAME_FILTER) ?: AllGames
             ).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
                 INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
