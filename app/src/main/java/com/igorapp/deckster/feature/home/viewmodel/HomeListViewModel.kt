@@ -102,7 +102,7 @@ class HomeListViewModel @Inject constructor(
                 savedStateHandle.get<GameStatus>(GAME_FILTER) ?: Verified
             ).flowOn(Dispatchers.IO).collect { games ->
                 repository.addGames(games)
-                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement pagging3
+                INITIAL_PAGE++ //todo get page by count e.g count/size = page or implement paging3
             }
         }
     }
