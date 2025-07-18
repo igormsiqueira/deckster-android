@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEmpty
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -34,7 +35,9 @@ class GameDetailsViewModel @Inject constructor(
 
     private val gameId: String = checkNotNull(savedStateHandle[Arguments.gameId.name])
     private val localGame: Flow<Game> =
-        repository.searchGameById(gameId).onEmpty { gameService.searchById(gameId) }
+        repository.searchGameById(gameId).onEmpty {
+            emitAll(gameService.searchById(gameId))
+        }
 
     private val gameInfo: Flow<GameInfoResult?> =
         SteamShotsFlow(forId = gameId).flowOn(Dispatchers.IO)
