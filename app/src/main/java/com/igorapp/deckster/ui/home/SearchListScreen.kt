@@ -59,7 +59,7 @@ internal fun SearchListScreen(
                         is DecksterSearchUiState.Empty -> {
                             searchEmptyState(
                                 if (state.term.isNullOrBlank()) {
-                                    "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to you backlog."
+                                    "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to your backlog."
                                 } else {
                                     "No results for ${state.term}"
                                 }
@@ -81,7 +81,7 @@ private fun LazyListScope.deckGameSearchScreen(
 
     if (state.term.isNullOrBlank()) {
         text =
-            "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to you backlog."
+            "Start a search by typing the name of a game.\n\nUnplayable games still show in the search and can be added to your backlog."
     } else if (state.games.isEmpty()) {
         text = "No results for \"${state.term}\""
     }
