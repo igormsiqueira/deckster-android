@@ -64,7 +64,9 @@ class SearchListViewModel @Inject constructor(
 
 
     companion object {
-        var INITIAL_PAGE = 0
+        // Keep in sync with SplashScreenViewModel to prevent duplicate first
+        // page fetches when loading additional results.
+        var INITIAL_PAGE = 1
         const val SIZE = 20
         const val GAME_FILTER = "game_status_filter"
     }
