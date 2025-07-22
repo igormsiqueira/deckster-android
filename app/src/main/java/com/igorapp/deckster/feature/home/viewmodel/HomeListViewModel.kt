@@ -111,7 +111,7 @@ class HomeListViewModel @Inject constructor(
         // Start paging at the same point as the SplashScreenViewModel to avoid
         // reloading the first page again when requesting more data.
         var INITIAL_PAGE = 1
-        const val SIZE = 15
+        const val SIZE = 10
         const val GAME_FILTER = "game_status_filter"
     }
 
